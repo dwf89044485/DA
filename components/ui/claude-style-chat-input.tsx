@@ -106,6 +106,18 @@ const FilePreviewCard = ({
   );
 };
 
+export interface SkillChip {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+}
+
+export interface AgentChip {
+  name: string;
+  title: string;
+  avatar: string;
+}
+
 export interface ChatInputHandle {
   focus: () => void;
 }
@@ -116,6 +128,8 @@ interface ChatInputProps {
   placeholder?: string;
   skills?: SkillChip[];
   onRemoveSkill?: (id: string) => void;
+  agentChip?: AgentChip;
+  onRemoveAgent?: () => void;
 }
 
 export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ClaudeChatInput({
@@ -123,6 +137,8 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   placeholder = "问我任何问题或分配一个任务",
   skills = [],
   onRemoveSkill,
+  agentChip,
+  onRemoveAgent,
 }, ref) {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -357,6 +373,46 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 pointerEvents: isActive ? "auto" : "none",
               }}
             >
+              {/* Agent 角色标签：排第一位 */}
+              {agentChip && (
+                <div
+                  onClick={() => onRemoveAgent?.()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 0,
+                    height: 32,
+                    padding: "0 12px",
+                    borderRadius: 20,
+                    backgroundColor: "#dcf3fa",
+                    cursor: onRemoveAgent ? "pointer" : "default",
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    lineHeight: "22px",
+                    color: "rgba(0,0,0,0.9)",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {agentChip.title}
+                  </span>
+                  <span style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 14,
+                    height: 14,
+                    flexShrink: 0,
+                    color: "rgba(0,0,0,0.5)",
+                    marginLeft: 8,
+                  }}>
+                    <X style={{ width: 10, height: 10 }} />
+                  </span>
+                </div>
+              )}
               {skills.length > 0 ? (
                 skills.map((skill) => (
                   <div
@@ -365,7 +421,8 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 4,
+                      justifyContent: "space-between",
+                      gap: 0,
                       height: 32,
                       padding: "0 12px",
                       borderRadius: 20,
@@ -375,7 +432,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                     }}
                   >
                     {skill.icon && (
-                      <span style={{ display: "flex", flexShrink: 0 }}>
+                      <span style={{ display: "flex", flexShrink: 0, marginRight: 4 }}>
                         {skill.icon}
                       </span>
                     )}
@@ -397,6 +454,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                         height: 14,
                         flexShrink: 0,
                         color: "rgba(0,0,0,0.5)",
+                        marginLeft: 8,
                       }}>
                         <X style={{ width: 10, height: 10 }} />
                       </span>

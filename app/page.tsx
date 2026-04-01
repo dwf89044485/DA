@@ -277,7 +277,7 @@ export default function Home() {
               {activeSkills.length === 0 && (
                 <motion.div
                   key="welcome"
-                  initial={{ opacity: 0, y: -16 }}
+                  initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.3, ease: EASE }}

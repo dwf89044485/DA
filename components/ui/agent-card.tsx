@@ -42,6 +42,8 @@ interface StatItem {
 interface AgentCardProps {
   /** 英文名 */
   name: string;
+  /** 英文名颜色（默认蓝色） */
+  nameColor?: string;
   /** 中文头衔 */
   title: string;
   /** 头像图片 URL */
@@ -54,6 +56,8 @@ interface AgentCardProps {
   skills: SkillTag[];
   /** hover 展开后显示的全部技能标签（纯文字） */
   expandedSkills?: string[];
+  /** 召唤时的引导文案（"告诉我……" 部分） */
+  summonText?: string;
   /** CTA 按钮文字 */
   ctaLabel?: string;
   /** 点击回调 */
@@ -103,12 +107,14 @@ const CARD_HEIGHT = 438;
 // ── Component ───────────────────────────────────────────────────
 export default function AgentCard({
   name,
+  nameColor,
   title,
   avatar,
   description,
   stats,
   skills,
   expandedSkills,
+  summonText,
   ctaLabel = "立即召唤",
   onClick,
   onSkillClick,
@@ -212,7 +218,7 @@ export default function AgentCard({
               fontSize: 20,
               lineHeight: "24px",
               fontWeight: 500,
-              color: T.blue,
+              color: nameColor ?? T.blue,
               margin: 0,
             }}
           >
@@ -481,6 +487,7 @@ export const RIGEL_DATA: AgentCardProps = {
   name: "Rigel",
   title: "数仓工程专家",
   avatar: "/agents/rigel.png",
+  summonText: "今天想开发什么数仓？",
   description:
     "擅长数仓建模与全链路工程开发，把业务需求转化为可落地的数据架构，调度、运维、异常处理一手包办",
   stats: [
@@ -495,12 +502,12 @@ export const RIGEL_DATA: AgentCardProps = {
     { label: "检测管道异常", icon: <IconOps size={14} color={ic} /> },
   ],
   expandedSkills: [
-    "需求转模型",
-    "生成调度方案",
-    "自动数仓开发",
-    "检测管道异常",
     "接入数据源",
+    "需求转数据模型",
     "优化任务性能",
+    "自动数仓开发",
+    "生成调度方案",
+    "检测管道异常",
   ],
 };
 
@@ -512,94 +519,100 @@ export function RigelCard({ onClick }: { onClick?: () => void }) {
 // ── 预设数据：其他 Agent ────────────────────────────────────────
 export const VEGA_DATA: AgentCardProps = {
   name: "Vega",
+  nameColor: "#00BBA2",
   title: "数据分析专家",
   avatar: "/agents/vega.png",
+  summonText: "今天想分析什么数据？",
   description:
-    "精通 SQL 分析与可视化，快速定位业务问题，输出高质量数据洞察报告",
+    "精通多维数据分析与智能洞察，用自然语言取数，快速识别趋势异常，输出高质量数据报告",
   stats: [
     { value: "200+", label: "分析模板" },
     { value: "90%", label: "自动化率" },
     { value: "3min", label: "平均出报告" },
   ],
   skills: [
-    { label: "智能分析", icon: <IconCatalog size={14} color={ic} /> },
-    { label: "可视化报告", icon: <IconWorkflow size={14} color={ic} /> },
-    { label: "SQL 诊断", icon: <IconSQL size={14} color={ic} /> },
-    { label: "异常归因", icon: <IconOps size={14} color={ic} /> },
+    { label: "自然语言取数", icon: <IconCatalog size={14} color={ic} /> },
+    { label: "智能趋势分析", icon: <IconWorkflow size={14} color={ic} /> },
+    { label: "多维数据洞察", icon: <IconSQL size={14} color={ic} /> },
+    { label: "生成数据报告", icon: <IconOps size={14} color={ic} /> },
   ],
   expandedSkills: [
-    "智能分析",
-    "可视化报告",
-    "SQL 诊断",
     "异常归因",
-    "趋势预测",
-    "数据清洗",
+    "自然语言取数",
+    "指标拆解",
+    "智能趋势分析",
+    "生成数据报告",
+    "多维数据洞察",
   ],
 };
 
-export const ALTAIR_DATA: AgentCardProps = {
-  name: "Altair",
+export const ORION_DATA: AgentCardProps = {
+  name: "Orion",
+  nameColor: "#CC6B3A",
   title: "数据治理专家",
   avatar: "/agents/altair.png",
+  summonText: "今天想治理哪些数据？",
   description:
-    "专注数据质量管理、元数据治理和数据安全合规，确保数据资产健康可控",
+    "全面覆盖数据质量、血缘追踪与元数据管理，自动识别口径冲突，确保数据资产健康可信",
   stats: [
     { value: "50+", label: "治理规则" },
     { value: "99.5%", label: "质量达标率" },
     { value: "1000+", label: "治理表数" },
   ],
   skills: [
-    { label: "质量检测", icon: <IconCatalog size={14} color={ic} /> },
-    { label: "元数据管理", icon: <IconWorkflow size={14} color={ic} /> },
-    { label: "血缘分析", icon: <IconSQL size={14} color={ic} /> },
-    { label: "合规审计", icon: <IconOps size={14} color={ic} /> },
+    { label: "监测数据质量", icon: <IconCatalog size={14} color={ic} /> },
+    { label: "智能血缘维护", icon: <IconWorkflow size={14} color={ic} /> },
+    { label: "自动管理元数据", icon: <IconSQL size={14} color={ic} /> },
+    { label: "识别口径冲突", icon: <IconOps size={14} color={ic} /> },
   ],
   expandedSkills: [
-    "质量检测",
-    "元数据管理",
-    "血缘分析",
-    "合规审计",
     "安全脱敏",
+    "自动管理元数据",
     "标签治理",
+    "监测数据质量",
+    "智能血缘维护",
+    "识别口径冲突",
   ],
 };
 
-export const SIRIUS_DATA: AgentCardProps = {
-  name: "Sirius",
-  title: "ML 工程专家",
+export const NOVA_DATA: AgentCardProps = {
+  name: "Nova",
+  nameColor: "#934BFF",
+  title: "业务运营专家",
   avatar: "/agents/sirius.png",
+  summonText: "今天想运营什么业务？",
   description:
-    "全流程机器学习工程能力，从特征工程到模型部署，快速落地 AI 应用",
+    "专注业务指标监控与运营看板搭建，智能预警异常波动，帮助业务团队快速自助取数、驱动决策",
   stats: [
-    { value: "30+", label: "算法框架" },
-    { value: "5x", label: "迭代加速" },
-    { value: "98.7%", label: "服务可用率" },
+    { value: "100+", label: "运营模板" },
+    { value: "5min", label: "看板搭建" },
+    { value: "99%", label: "预警准确率" },
   ],
   skills: [
-    { label: "特征工程", icon: <IconCatalog size={14} color={ic} /> },
-    { label: "模型训练", icon: <IconMLExp size={14} color={ic} /> },
-    { label: "自动调参", icon: <IconSQL size={14} color={ic} /> },
-    { label: "模型部署", icon: <IconOps size={14} color={ic} /> },
+    { label: "业务指标监控", icon: <IconWorkflow size={14} color={ic} /> },
+    { label: "智能异常预警", icon: <IconOps size={14} color={ic} /> },
+    { label: "自助取数", icon: <IconCatalog size={14} color={ic} /> },
+    { label: "生成运营看板", icon: <IconSQL size={14} color={ic} /> },
   ],
   expandedSkills: [
-    "特征工程",
-    "模型训练",
-    "自动调参",
-    "模型部署",
-    "A/B 实验",
-    "模型监控",
+    "自助取数",
+    "业务指标监控",
+    "生成运营看板",
+    "智能异常预警",
+    "目标达成追踪",
+    "用户行为分析",
   ],
 };
 
 // ── 四卡扇形排列组件 ───────────────────────────────────────────
 const FAN_CARDS = [
-  { data: RIGEL_DATA,  rotate: -10 },
-  { data: VEGA_DATA,   rotate: -3  },
-  { data: ALTAIR_DATA, rotate: 3   },
-  { data: SIRIUS_DATA, rotate: 10  },
+  { data: RIGEL_DATA, rotate: -10 },
+  { data: VEGA_DATA,  rotate: -3  },
+  { data: ORION_DATA, rotate: 3   },
+  { data: NOVA_DATA,  rotate: 10  },
 ];
 
-export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string) => void }) {
+export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const getOffset = (i: number) => {
@@ -662,7 +675,7 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
                 transition: `box-shadow ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
-              <AgentCard {...data} isHovered={isHovered} onSkillClick={onSkillClick} />
+              <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
             </motion.div>
           );
         })}
