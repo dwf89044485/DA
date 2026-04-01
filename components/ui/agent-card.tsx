@@ -608,7 +608,7 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
     const dist = Math.abs(i - hoveredIdx);
     if (dist === 1) {
       const dir = i < hoveredIdx ? -1 : 1;
-      return { x: dir * 20 };
+      return { x: dir * 26 };
     }
     if (dist === 2) {
       const dir = i < hoveredIdx ? -1 : 1;
@@ -643,7 +643,7 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
                 x,
                 y: isHovered ? -10 : 0,
                 rotate,
-                scale: isHovered ? 1.12 : 1,
+                scale: isHovered ? 1.2 : 1,
               }}
               transition={{ duration: DUR.macro, ease: EASE }}
               onMouseEnter={() => setHoveredIdx(i)}
@@ -653,11 +653,11 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
                 marginLeft: i === 0 ? 0 : -8,
                 marginTop: (i === 0 || i === 3) ? 30 : 0,
                 transformOrigin: "center bottom",
-                zIndex: isHovered ? 10 : 1,
+                zIndex: isHovered ? 20 : 1,
                 position: "relative",
                 boxShadow: isHovered
-                  ? "0 32px 64px rgba(0,0,0,0.16), 0 12px 20px rgba(0,0,0,0.08)"
-                  : "0 4px 16px rgba(0,0,0,0.06)",
+                  ? "0 80px 160px rgba(0,0,0,0.22), 0 32px 64px rgba(0,0,0,0.14)"
+                  : "0 2px 8px rgba(0,0,0,0.04)",
                 borderRadius: 24,
                 transition: `box-shadow ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
               }}
