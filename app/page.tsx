@@ -359,9 +359,9 @@ export default function Home() {
                   style={{
                     position: "absolute",
                     bottom: "calc(100% - 20px)",
-                    left: 0,
+                    left: 6,
                     right: 0,
-                    zIndex: 0,
+                    zIndex: 2,
                     display: "flex",
                     alignItems: "flex-end",
                     paddingBottom: 20,
