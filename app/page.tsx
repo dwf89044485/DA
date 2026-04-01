@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Sidebar from "@/components/ui/sidebar";
-import ClaudeChatInput, { type ChatInputHandle, type SkillChip } from "@/components/ui/claude-style-chat-input";
+import ClaudeChatInput, { type ChatInputHandle, type SkillChip, type AgentChip } from "@/components/ui/claude-style-chat-input";
 import { AgentFanCards } from "@/components/ui/agent-card";
 import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
 import StudioView from "@/components/ui/studio-view";
@@ -13,37 +13,45 @@ import AiRunningBubble from "@/components/ui/ai-running-bubble";
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
+// ── 当前召唤的 Agent 信息 ────────────────────────────────────────
+interface SummonedAgent {
+  name: string;
+  title: string;
+  avatar: string;
+  summonText?: string;
+}
+
 // ── expanded skill label → icon 映射 ────────────────────────────
 const SKILL_ICON_COLOR = "rgba(0,0,0,0.45)";
 const SKILL_ICON_MAP: Record<string, React.ReactNode> = {
   // Rigel
-  "需求转模型": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
+  "需求转数据模型": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
   "生成调度方案": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
   "自动数仓开发": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
   "检测管道异常": <IconOps size={14} color={SKILL_ICON_COLOR} />,
   "接入数据源": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
   "优化任务性能": <IconOps size={14} color={SKILL_ICON_COLOR} />,
   // Vega
-  "智能分析": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
-  "可视化报告": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
-  "SQL 诊断": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
+  "自然语言取数": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
+  "智能趋势分析": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
+  "多维数据洞察": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
+  "生成数据报告": <IconOps size={14} color={SKILL_ICON_COLOR} />,
   "异常归因": <IconOps size={14} color={SKILL_ICON_COLOR} />,
-  "趋势预测": <IconMLExp size={14} color={SKILL_ICON_COLOR} />,
-  "数据清洗": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
-  // Altair
-  "质量检测": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
-  "元数据管理": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
-  "血缘分析": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
-  "合规审计": <IconOps size={14} color={SKILL_ICON_COLOR} />,
+  "指标拆解": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
+  // Orion
+  "监测数据质量": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
+  "智能血缘维护": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
+  "自动管理元数据": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
+  "识别口径冲突": <IconOps size={14} color={SKILL_ICON_COLOR} />,
   "安全脱敏": <IconOps size={14} color={SKILL_ICON_COLOR} />,
   "标签治理": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
-  // Sirius
-  "特征工程": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
-  "模型训练": <IconMLExp size={14} color={SKILL_ICON_COLOR} />,
-  "自动调参": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
-  "模型部署": <IconOps size={14} color={SKILL_ICON_COLOR} />,
-  "A/B 实验": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
-  "模型监控": <IconOps size={14} color={SKILL_ICON_COLOR} />,
+  // Nova
+  "业务指标监控": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
+  "智能异常预警": <IconOps size={14} color={SKILL_ICON_COLOR} />,
+  "自助取数": <IconCatalog size={14} color={SKILL_ICON_COLOR} />,
+  "生成运营看板": <IconSQL size={14} color={SKILL_ICON_COLOR} />,
+  "目标达成追踪": <IconWorkflow size={14} color={SKILL_ICON_COLOR} />,
+  "用户行为分析": <IconMLExp size={14} color={SKILL_ICON_COLOR} />,
 };
 
 const C = {
@@ -77,18 +85,28 @@ export default function Home() {
     y: -BUBBLE_TARGET.bottom,
   });
   const [activeSkills, setActiveSkills] = useState<SkillChip[]>([]);
+  const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
-  const handleSkillClick = useCallback((label: string) => {
-    // 单标签模式：直接替换，从映射表查找图标
+  const handleSkillClick = useCallback((label: string, agent?: { name: string; title: string; avatar: string; summonText?: string }) => {
     setActiveSkills([{ id: label, label, icon: SKILL_ICON_MAP[label] }]);
+    if (agent) setSummonedAgent(agent);
     requestAnimationFrame(() => chatInputRef.current?.focus());
   }, []);
 
   const handleRemoveSkill = useCallback((id: string) => {
-    setActiveSkills((prev) => prev.filter((s) => s.id !== id));
+    setActiveSkills((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      if (next.length === 0) setSummonedAgent(null);
+      return next;
+    });
+  }, []);
+
+  const handleRemoveAgent = useCallback(() => {
+    setSummonedAgent(null);
+    setActiveSkills([]);
   }, []);
 
   const handleMenuClick = useCallback((id: string) => {
@@ -277,11 +295,11 @@ export default function Home() {
               {activeSkills.length === 0 && (
                 <motion.div
                   key="welcome"
-                  initial={{ opacity: 1, y: 0 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ y: -16 }}
+                  animate={{ y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.3, ease: EASE }}
-                  style={{ marginTop: -50 }}
+                  style={{ marginTop: -50, position: "relative" }}
                 >
                   {/* ── 欢迎标题 ── */}
                   <div style={{
@@ -313,6 +331,7 @@ export default function Home() {
                   <div style={{ marginTop: 40 }}>
                     <AgentFanCards onSkillClick={handleSkillClick} />
                   </div>
+
                 </motion.div>
               )}
             </AnimatePresence>
@@ -326,15 +345,127 @@ export default function Home() {
           justifyContent: "center",
           padding: "0 20px 32px",
         }}>
-          <div style={{ width: "100%", maxWidth: 880 }}>
-            <ClaudeChatInput
-              ref={chatInputRef}
-              placeholder="选择一位专家或直接分配任务"
-              skills={activeSkills}
-              onRemoveSkill={handleRemoveSkill}
-            />
+          <div style={{ width: "100%", maxWidth: 880, position: "relative" }}>
+
+            {/* ── Agent 召唤引导：头像从输入框后面伸出 ── */}
+            <AnimatePresence>
+              {summonedAgent && (
+                <motion.div
+                  key={summonedAgent.name}
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 40, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: EASE }}
+                  style={{
+                    position: "absolute",
+                    bottom: "calc(100% - 20px)",
+                    left: 0,
+                    right: 0,
+                    zIndex: 0,
+                    display: "flex",
+                    alignItems: "flex-end",
+                    paddingBottom: 20,
+                    pointerEvents: "none",
+                  }}
+                >
+                  {/* 头像 */}
+                  <div style={{
+                    width: 120,
+                    height: 96,
+                    flexShrink: 0,
+                    overflow: "hidden",
+                    position: "relative",
+                    marginLeft: 12,
+                  }}>
+                    <img
+                      src={summonedAgent.avatar}
+                      alt={summonedAgent.name}
+                      style={{
+                        position: "absolute",
+                        left: -15,
+                        top: -4,
+                        width: 160,
+                        height: 160,
+                        objectFit: "cover",
+                        objectPosition: "top center",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
+
+                  {/* 引导文案 */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    paddingBottom: 28,
+                    flexWrap: "nowrap",
+                  }}>
+                    <span style={{
+                      fontFamily: FONT,
+                      fontSize: 24,
+                      fontWeight: 600,
+                      lineHeight: "32px",
+                      color: "rgba(0,0,0,0.9)",
+                      whiteSpace: "nowrap",
+                    }}>
+                      我是{summonedAgent.title}
+                    </span>
+                    <span style={{
+                      fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', sans-serif",
+                      fontSize: 28,
+                      fontWeight: 500,
+                      lineHeight: "32px",
+                      color: "#2873FF",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {summonedAgent.name}
+                    </span>
+                    {summonedAgent.summonText && (
+                      <span style={{
+                        fontFamily: FONT,
+                        fontSize: 24,
+                        fontWeight: 600,
+                        lineHeight: "32px",
+                        color: "rgba(0,0,0,0.9)",
+                        whiteSpace: "nowrap",
+                      }}>
+                        ，{summonedAgent.summonText}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 输入框：zIndex=1 盖住 agent 头像底部 */}
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <ClaudeChatInput
+                ref={chatInputRef}
+                placeholder="选择一位专家或直接分配任务"
+                skills={activeSkills}
+                onRemoveSkill={handleRemoveSkill}
+                agentChip={summonedAgent ?? undefined}
+                onRemoveAgent={handleRemoveAgent}
+              />
+            </div>
           </div>
         </div>
+
+        {/* 帘幕遮罩：覆盖整个 DataClaw 面板，与背景同色从不透明→透明，
+            模拟 fade-in 而不影响子级 backdrop-filter */}
+        <motion.div
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: C.rightBg,
+            pointerEvents: "none",
+            zIndex: 50,
+          }}
+        />
 
         </motion.div>
         )}

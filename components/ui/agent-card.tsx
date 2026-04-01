@@ -378,8 +378,8 @@ export default function AgentCard({
             animate={{ opacity: hovered ? 1 : 0 }}
             transition={transition}
             style={{
-              display: "flex",
-              flexWrap: "wrap",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
               gap: 8,
               marginTop: 24,
             }}
@@ -398,7 +398,7 @@ export default function AgentCard({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 4,
+                  justifyContent: "space-between",
                   height: 28,
                   paddingLeft: 12,
                   paddingRight: 8,

@@ -33,6 +33,12 @@ export interface SkillChip {
   icon?: React.ReactNode;
 }
 
+export interface AgentChip {
+  name: string;
+  title: string;
+  avatar: string;
+}
+
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -106,18 +112,6 @@ const FilePreviewCard = ({
   );
 };
 
-export interface SkillChip {
-  id: string;
-  label: string;
-  icon?: React.ReactNode;
-}
-
-export interface AgentChip {
-  name: string;
-  title: string;
-  avatar: string;
-}
-
 export interface ChatInputHandle {
   focus: () => void;
 }
@@ -149,8 +143,8 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasContent = message.trim().length > 0 || files.length > 0;
-  // 激活态：聚焦或有技能标签时触发
-  const isActive = isFocused || skills.length > 0;
+  // 激活态：聚焦或有技能标签或有 agent 标签时触发
+  const isActive = isFocused || skills.length > 0 || !!agentChip;
 
   // 暴露 focus 方法给父组件
   useImperativeHandle(ref, () => ({
