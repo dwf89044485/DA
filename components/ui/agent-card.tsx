@@ -109,7 +109,7 @@ export default function AgentCard({
   stats,
   skills,
   expandedSkills,
-  ctaLabel = "开始咨询",
+  ctaLabel = "立即召唤",
   onClick,
   onSkillClick,
   isHovered: controlledHover,
@@ -180,19 +180,21 @@ export default function AgentCard({
       />
 
       {/* ── 唯一信息区 — 从底部向上覆盖 ─────────────────── */}
-      <div
+      <motion.div
+        initial={false}
+        animate={{
+          y: hovered ? 0 : CARD_HEIGHT - 156,
+          paddingTop: hovered ? 24 : 14,
+        }}
+        transition={{ duration: DUR.macro, ease: EASE }}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          paddingTop: hovered ? 24 : 14,
-          paddingBottom: 14,
-          transform: `translateY(${hovered ? 0 : CARD_HEIGHT - 156}px)`,
-          transition: `transform ${DUR.macro}s cubic-bezier(0.4,0,0.2,1), padding ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 100%)",
+          paddingBottom: 24,
+          background: "rgba(255,255,255,0.75)",
           backdropFilter: "blur(20px) saturate(180%)",
           WebkitBackdropFilter: "blur(20px) saturate(180%)",
           display: "flex",
@@ -376,13 +378,17 @@ export default function AgentCard({
               marginTop: 24,
             }}
           >
-            {expandedSkills.map((label, i) => (
+            {expandedSkills.map((label, i) => {
+              const [isHovered, setIsHovered] = React.useState(false);
+              return (
               <div
                 key={i}
                 onClick={(e) => {
                   e.stopPropagation();
                   onSkillClick?.(label);
                 }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -391,9 +397,10 @@ export default function AgentCard({
                   paddingLeft: 12,
                   paddingRight: 8,
                   borderRadius: 100,
-                  background: "rgba(255,255,255,0.5)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  background: isHovered ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
+                  boxShadow: isHovered ? "0 1px 6px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
                   cursor: onSkillClick ? "pointer" : "default",
+                  transition: "background 100ms, box-shadow 100ms",
                 }}
               >
                 <span
@@ -408,7 +415,8 @@ export default function AgentCard({
                 </span>
                 <ArrowUpRight />
               </div>
-            ))}
+              );
+            })}
           </motion.div>
         )}
 
@@ -423,6 +431,16 @@ export default function AgentCard({
           style={{ flexShrink: 0 }}
         >
           <div
+            onMouseEnter={(e) => {
+              const div = e.currentTarget as HTMLDivElement;
+              div.style.background = "rgba(0,0,0,0.85)";
+              div.style.boxShadow = "0 2px 8px rgba(0,0,0,0.25)";
+            }}
+            onMouseLeave={(e) => {
+              const div = e.currentTarget as HTMLDivElement;
+              div.style.background = "rgba(0,0,0,0.75)";
+              div.style.boxShadow = "0 2px 4px -2px rgba(0,0,0,0.2)";
+            }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -433,6 +451,7 @@ export default function AgentCard({
               background: "rgba(0,0,0,0.75)",
               boxShadow: "0 2px 4px -2px rgba(0,0,0,0.2)",
               cursor: "pointer",
+              transition: "background 100ms, box-shadow 100ms",
             }}
           >
             <AiChatIcon />
@@ -449,7 +468,7 @@ export default function AgentCard({
             </span>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -583,19 +602,19 @@ const FAN_CARDS = [
 export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string) => void }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const PUSH = 6;
-
-  const getTransform = (i: number) => {
-    if (hoveredIdx === null) return { x: 0, y: 0 };
-    if (i === hoveredIdx) return { x: 0, y: -50 };
-
+  const getOffset = (i: number) => {
+    if (hoveredIdx === null) return { x: 0 };
+    if (i === hoveredIdx) return { x: 0 };
     const dist = Math.abs(i - hoveredIdx);
     if (dist === 1) {
       const dir = i < hoveredIdx ? -1 : 1;
-      return { x: dir * PUSH, y: 0 };
+      return { x: dir * 20 };
     }
-
-    return { x: 0, y: 0 };
+    if (dist === 2) {
+      const dir = i < hoveredIdx ? -1 : 1;
+      return { x: dir * 16 };
+    }
+    return { x: 0 };
   };
 
   return (
@@ -615,11 +634,17 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
         position: "relative",
       }}>
         {FAN_CARDS.map(({ data, rotate }, i) => {
-          const { x, y } = getTransform(i);
+          const isHovered = hoveredIdx === i;
+          const { x } = getOffset(i);
           return (
             <motion.div
               key={data.name}
-              animate={{ x, y, rotate }}
+              animate={{
+                x,
+                y: isHovered ? -10 : 0,
+                rotate,
+                scale: isHovered ? 1.12 : 1,
+              }}
               transition={{ duration: DUR.macro, ease: EASE }}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
@@ -628,11 +653,16 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string)
                 marginLeft: i === 0 ? 0 : -8,
                 marginTop: (i === 0 || i === 3) ? 30 : 0,
                 transformOrigin: "center bottom",
-                zIndex: hoveredIdx === i ? 10 : 1,
+                zIndex: isHovered ? 10 : 1,
                 position: "relative",
+                boxShadow: isHovered
+                  ? "0 32px 64px rgba(0,0,0,0.16), 0 12px 20px rgba(0,0,0,0.08)"
+                  : "0 4px 16px rgba(0,0,0,0.06)",
+                borderRadius: 24,
+                transition: `box-shadow ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
-              <AgentCard {...data} isHovered={hoveredIdx === i} onSkillClick={onSkillClick} />
+              <AgentCard {...data} isHovered={isHovered} onSkillClick={onSkillClick} />
             </motion.div>
           );
         })}

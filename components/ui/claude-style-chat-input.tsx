@@ -201,14 +201,14 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         <div
           style={{
             position: "absolute",
-            inset: -4,
+            inset: "var(--glow-inset, -8px)",
             borderRadius: 30,
             background: isActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "transparent",
-            filter: "blur(12px)",
+            filter: "blur(26px)",
             opacity: isActive ? 0.6 : 0,
-            animation: isActive ? "border-rotate 4s linear infinite" : "none",
+            animation: isActive ? "border-rotate 3s linear infinite, glow-breathe 6s ease-in-out infinite" : "none",
             transition: "opacity 0.3s ease",
             pointerEvents: "none",
           }}
@@ -224,7 +224,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             background: isActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "#E8EAED",
-            animation: isActive ? "border-rotate 4s linear infinite" : "none",
+            animation: isActive ? "border-rotate 3s linear infinite" : "none",
           }}
         >
         {/* ── 内层白色主容器 ── */}
@@ -495,6 +495,17 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
         @keyframes border-rotate {
           to { --angle: 360deg; }
+        }
+
+        @keyframes glow-breathe {
+          0%, 100% {
+            --glow-inset: -8px;
+            filter: blur(26px);
+          }
+          50% {
+            --glow-inset: -14px;
+            filter: blur(32px);
+          }
         }
 
         @keyframes shimmer {

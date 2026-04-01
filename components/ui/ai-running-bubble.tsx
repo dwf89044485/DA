@@ -58,10 +58,7 @@ const RUNNING_STATUS_TEXTS = [
 ] as const;
 
 // ── Keyframes ────────────────────────────────────────────────
-const KEYFRAMES = `
-@keyframes aurora-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
-@keyframes bubble-text-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-`;
+const KEYFRAMES = `@keyframes aurora-spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes text-fade-in{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}@keyframes text-fade-out{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-4px)}}@keyframes shine-sweep{0%{background-position:200% 0}100%{background-position:-100% 0}}`;
 
 const discStyle = (gradient: string): React.CSSProperties => ({
   position: "absolute",
@@ -85,7 +82,7 @@ export default function AiRunningBubble() {
 
     const timer = window.setInterval(() => {
       setStatusIndex((prev) => (prev + 1) % RUNNING_STATUS_TEXTS.length);
-    }, 2400);
+    }, 6000);
 
     return () => window.clearInterval(timer);
   }, []);
@@ -258,43 +255,33 @@ export default function AiRunningBubble() {
           >
             数仓工程专家
           </span>
-          <div
-            style={{
-              position: "relative",
-              height: 22,
-              overflow: "hidden",
-            }}
-          >
-            <AnimatePresence initial={false} mode="wait">
-              <motion.span
-                key={statusIndex}
-                initial={{ opacity: 0, y: 6, filter: "blur(2px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
-                transition={{ duration: 0.32, ease: [0.4, 0, 0.2, 1] }}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  fontSize: 14,
-                  fontWeight: 400,
-                  lineHeight: "22px",
-                  color: TEXT.secondary,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  background:
-                    "linear-gradient(110deg, rgba(0,0,0,0.45), rgba(0,0,0,0.45) 35%, rgba(0,0,0,0.88) 50%, rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.45))",
-                  backgroundSize: "220% 100%",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  animation: "bubble-text-shimmer 4s linear infinite",
-                }}
-              >
-                {RUNNING_STATUS_TEXTS[statusIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={statusIndex}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                fontSize: 14,
+                fontWeight: 400,
+                lineHeight: "22px",
+                color: TEXT.secondary,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                position: "relative",
+                background: `linear-gradient(90deg, ${TEXT.secondary} 0%, rgba(255,255,255,0.78) 50%, ${TEXT.secondary} 100%)`,
+                backgroundSize: "200% 100%",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "shine-sweep 3s ease-in-out infinite",
+              }}
+            >
+              {RUNNING_STATUS_TEXTS[statusIndex]}
+            </motion.span>
+          </AnimatePresence>
         </div>
       </motion.div>
     </>

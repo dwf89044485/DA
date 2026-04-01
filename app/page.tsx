@@ -61,9 +61,8 @@ const BUBBLE_TARGET = {
   radius: 100,
 } as const;
 
-const SHRINK_DURATION = 0.64;
-const DATACLAW_SHRINK_DURATION = 0.84;
-const DATACLAW_SHRINK_EASE: [number, number, number, number] = [0.28, 0.2, 0.2, 1];
+const SHRINK_DURATION = 0.58;
+const SHRINK_EASE: [number, number, number, number] = [0.23, 0.65, 0.25, 1];
 const STUDIO_REVEAL_DURATION = 0.3;
 const STUDIO_REVEAL_EASE: [number, number, number, number] = [0.22, 0.61, 0.36, 1];
 const BUBBLE_REVEAL_EASE: [number, number, number, number] = [0.23, 0.64, 0.22, 1];
@@ -205,8 +204,8 @@ export default function Home() {
             ? { duration: 0 }
             : viewState === "shrinking"
               ? {
-                  duration: DATACLAW_SHRINK_DURATION,
-                  ease: DATACLAW_SHRINK_EASE,
+                  duration: SHRINK_DURATION,
+                  ease: SHRINK_EASE,
                 }
               : { duration: 0.24, ease: EASE }
           }
@@ -282,6 +281,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.3, ease: EASE }}
+                  style={{ marginTop: -50 }}
                 >
                   {/* ── 欢迎标题 ── */}
                   <div style={{
@@ -289,7 +289,7 @@ export default function Home() {
                     justifyContent: "center",
                     alignItems: "center",
                     gap: 8,
-                    padding: "40px 0 54px",
+                    padding: "40px 0 24px",
                   }}>
                     <span style={{
                       fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -310,7 +310,9 @@ export default function Home() {
                   </div>
 
                   {/* Agent 名片卡片 — 四卡扇形排列 */}
-                  <AgentFanCards onSkillClick={handleSkillClick} />
+                  <div style={{ marginTop: 40 }}>
+                    <AgentFanCards onSkillClick={handleSkillClick} />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
