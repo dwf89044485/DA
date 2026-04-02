@@ -261,6 +261,16 @@ export function IconSidebarToggle({ size = 16, color = "currentColor", style, cl
   );
 }
 
+// ── AI New Chat（新建对话）──────────────────────────────────────
+export function IconAiNewChat({ size = 20, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeOpacity="0.9" strokeWidth="1.5" />
+      <path d="M10 6V14M6 10H14" stroke="currentColor" strokeOpacity="0.9" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // ── Workspace（账户区）──────────────────────────────────────────
 export function IconWorkspace({ size = 16, color = "currentColor", style, className }: IconProps) {
   return (

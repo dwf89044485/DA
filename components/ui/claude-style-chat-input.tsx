@@ -183,7 +183,10 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
     onSendMessage?.({ message, files });
     setMessage("");
     setFiles([]);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.blur();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

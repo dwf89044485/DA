@@ -411,6 +411,7 @@ export default function AgentCard({
               return (
               <div
                 key={i}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={(e) => {
                   e.stopPropagation();
                   onSkillClick?.(label);

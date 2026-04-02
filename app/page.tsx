@@ -3,15 +3,30 @@
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Sidebar from "@/components/ui/sidebar";
-import ClaudeChatInput, { type ChatInputHandle, type SkillChip, type AgentChip } from "@/components/ui/claude-style-chat-input";
+import ClaudeChatInput, { type ChatInputHandle, type SkillChip } from "@/components/ui/claude-style-chat-input";
 import { AgentFanCards } from "@/components/ui/agent-card";
 import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
 import StudioView from "@/components/ui/studio-view";
 import AiRunningBubble from "@/components/ui/ai-running-bubble";
+import ChatTitlebar from "@/components/ui/chat-titlebar";
+import UserMessageBubble from "@/components/ui/user-message-bubble";
+import Plan from "@/components/ui/agent-plan";
+import ThinkingSummary from "@/components/ui/thinking-summary";
 
 // ── Design tokens ──────────────────────────────────────────────
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
+
+// ── Agent 名称色映射 ──────────────────────────────────────────
+const AGENT_NAME_COLORS: Record<string, string> = {
+  Rigel: "#2873FF",
+  Vega: "#00BBA2",
+  Orion: "#CC6B3A",
+  Nova: "#934BFF",
+};
+
+// ── Chat phase ──────────────────────────────────────────────────
+type ChatPhase = "welcome" | "conversation";
 
 // ── 当前召唤的 Agent 信息 ────────────────────────────────────────
 interface SummonedAgent {
@@ -86,6 +101,8 @@ export default function Home() {
   });
   const [activeSkills, setActiveSkills] = useState<SkillChip[]>([]);
   const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
+  const [chatPhase, setChatPhase] = useState<ChatPhase>("welcome");
+  const [userMessage, setUserMessage] = useState<string>("");
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -102,13 +119,36 @@ export default function Home() {
     setActiveSkills((prev) => {
       const next = prev.filter((s) => s.id !== id);
       if (next.length === 0) {
-        requestAnimationFrame(() => setSummonedAgent(null));
+        setSummonedAgent(null);
       }
       return next;
     });
   }, []);
 
   const handleRemoveAgent = useCallback(() => {
+    setSummonedAgent(null);
+    setActiveSkills([]);
+  }, []);
+
+  const handleSendMessage = useCallback(({ message }: { message: string; files: unknown[] }) => {
+    if (!message.trim()) return;
+    setUserMessage(message.trim());
+    // 如果没有召唤 agent，默认使用 Rigel
+    if (!summonedAgent) {
+      setSummonedAgent({
+        name: "Rigel",
+        title: "数仓工程专家",
+        avatar: "/agents/1a.png",
+      });
+    }
+    setChatPhase("conversation");
+    // 清掉 skills 和 summonedAgent 相关的输入框状态
+    setActiveSkills([]);
+  }, [summonedAgent]);
+
+  const handleNewChat = useCallback(() => {
+    setChatPhase("welcome");
+    setUserMessage("");
     setSummonedAgent(null);
     setActiveSkills([]);
   }, []);
@@ -258,23 +298,55 @@ export default function Home() {
           padding: "0 20px",
           position: "relative",
         }}>
-          {/* 历史记录按钮 */}
-          <button style={{
-            width: 44, height: 44,
-            borderRadius: 100,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "background 100ms",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = C.iconBtn)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            <IconAiHistory size={20} color={C.textTertiary} />
-          </button>
+          <AnimatePresence mode="wait">
+            {chatPhase === "welcome" ? (
+              <motion.div
+                key="welcome-header"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                style={{ display: "flex", alignItems: "center" }}
+              >
+                {/* 历史记录按钮 */}
+                <button style={{
+                  width: 44, height: 44,
+                  borderRadius: 100,
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 100ms",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = C.iconBtn)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <IconAiHistory size={20} color={C.textTertiary} />
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="chat-header"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                style={{ width: "100%" }}
+              >
+                <ChatTitlebar
+                  agent={{
+                    name: summonedAgent?.name ?? "Rigel",
+                    title: summonedAgent?.title ?? "数仓工程专家",
+                    avatar: summonedAgent?.avatar ?? "/agents/1a.png",
+                    nameColor: AGENT_NAME_COLORS[summonedAgent?.name ?? "Rigel"],
+                  }}
+                  onNewChat={handleNewChat}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* ── 中间内容区（可滚动） ── */}
@@ -286,17 +358,18 @@ export default function Home() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: chatPhase === "welcome" ? "center" : "flex-start",
           scrollbarWidth: "none",
+          transition: "justify-content 0.3s",
         }}>
           {/* 内容宽度容器 880px */}
           <div style={{
             width: "100%",
             maxWidth: 880,
-            padding: "0 0 24px",
+            padding: chatPhase === "welcome" ? "0 0 24px" : "24px 0 120px",
           }}>
-            <AnimatePresence>
-              {activeSkills.length === 0 && (
+            <AnimatePresence mode="wait">
+              {chatPhase === "welcome" ? (
                 <motion.div
                   key="welcome"
                   initial={{ y: -16 }}
@@ -305,38 +378,83 @@ export default function Home() {
                   transition={{ duration: 0.3, ease: EASE }}
                   style={{ marginTop: -190, position: "relative" }}
                 >
-                  {/* ── 欢迎标题 ── */}
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "40px 0 24px",
-                    transform: "translateY(-60px)",
-                  }}>
-                    <span style={{
-                      fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                      fontSize: 36,
-                      fontWeight: 600,
-                      lineHeight: "40px",
-                      color: "#000",
-                      whiteSpace: "nowrap",
-                    }}>WeData</span>
-                    <span style={{
-                      fontFamily: FONT,
-                      fontSize: 32,
-                      fontWeight: 600,
-                      lineHeight: "40px",
-                      color: "#000",
-                      whiteSpace: "nowrap",
-                    }}>专家团随时待命</span>
-                  </div>
+                  {/* ── 欢迎标题 + 卡片 — 选中技能后一起退出 ── */}
+                  <AnimatePresence>
+                    {activeSkills.length === 0 && !summonedAgent && (
+                      <motion.div
+                        key="welcome-content"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -12 }}
+                        transition={{ duration: 0.3, ease: EASE }}
+                      >
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "40px 0 24px",
+                          transform: "translateY(-60px)",
+                        }}>
+                          <span style={{
+                            fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                            fontSize: 36,
+                            fontWeight: 600,
+                            lineHeight: "40px",
+                            color: "#000",
+                            whiteSpace: "nowrap",
+                          }}>WeData</span>
+                          <span style={{
+                            fontFamily: FONT,
+                            fontSize: 32,
+                            fontWeight: 600,
+                            lineHeight: "40px",
+                            color: "#000",
+                            whiteSpace: "nowrap",
+                          }}>专家团随时待命</span>
+                        </div>
+                        <div style={{ marginTop: -20 }}>
+                          <AgentFanCards onSkillClick={handleSkillClick} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                  {/* Agent 名片卡片 — 四卡扇形排列 */}
-                  <div style={{ marginTop: -20 }}>
-                    <AgentFanCards onSkillClick={handleSkillClick} />
-                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="conversation"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  style={{ display: "flex", flexDirection: "column", gap: 24 }}
+                >
+                  {/* 用户气泡 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, ease: EASE, delay: 0.1 }}
+                  >
+                    <UserMessageBubble content={userMessage} />
+                  </motion.div>
 
+                  {/* 思考摘要 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, ease: EASE, delay: 0.2 }}
+                  >
+                    <ThinkingSummary />
+                  </motion.div>
+
+                  {/* Agent 执行计划 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, ease: EASE, delay: 0.3 }}
+                  >
+                    <Plan />
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -356,15 +474,14 @@ export default function Home() {
           zIndex: 3,
         }}>
           <div style={{ width: "100%", maxWidth: 880, position: "relative", pointerEvents: "auto" }}>
-            {/* ── Agent 召唤引导：头像从输入框后面伸出 ── */}
+            {/* ── Agent 召唤引导：头像从输入框后面伸出（仅 welcome 阶段） ── */}
             <AnimatePresence>
-              {summonedAgent && (
+              {chatPhase === "welcome" && summonedAgent && (
                 <motion.div
                   key={summonedAgent.name}
                   initial={{ y: 40, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 40, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: EASE }}
+                  animate={{ y: 0, opacity: 1, transition: { duration: 0.35, ease: EASE, delay: 0.28 } }}
+                  exit={{ y: 40, opacity: 0, transition: { duration: 0.25, ease: EASE } }}
                   style={{
                     position: "absolute",
                     bottom: "calc(100% - 20px)",
@@ -442,11 +559,12 @@ export default function Home() {
             <div style={{ position: "relative" }}>
               <ClaudeChatInput
                 ref={chatInputRef}
-                placeholder="选择一位专家或直接分配任务"
-                skills={activeSkills}
+                placeholder={chatPhase === "conversation" ? "继续对话..." : "选择一位专家或直接分配任务"}
+                skills={chatPhase === "welcome" ? activeSkills : []}
                 onRemoveSkill={handleRemoveSkill}
-                agentChip={summonedAgent ?? undefined}
+                agentChip={chatPhase === "welcome" ? (summonedAgent ?? undefined) : undefined}
                 onRemoveAgent={handleRemoveAgent}
+                onSendMessage={handleSendMessage}
               />
             </div>
           </div>

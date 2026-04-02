@@ -31,59 +31,13 @@
 
 ## Design DNA（必须遵守）
 
-所有组件的视觉实现必须对齐以下 token，不得随意使用 Tailwind 默认色。
+完整的三维设计基因定义在 **`design-dna.json`**，包含：
+- **design_system** — 颜色、字体、间距、圆角、阴影、动效等可度量 token
+- **design_style** — 情绪、视觉语言、构图、交互手感等定性描述
+- **visual_effects** — 特效规范（当前以 CSS + framer-motion 为主）
 
-### 颜色
-```ts
-const COLOR = {
-  // 背景
-  pageBg:  "#F2F4F8",
-  cardBg:  "#FFFFFF",
-  border:  "#E9ECF1",
-  divider: "#E8EAED",
-
-  // 品牌色
-  primary: "#1664FF",
-
-  // 语义色
-  success: "#00B96B",
-  warning: "#FA8C16",
-  error:   "#F5222D",
-  info:    "#1664FF",
-
-  // 文字三级层次（黑色透明度分层）
-  text: {
-    primary:   "rgba(0,0,0,0.9)",  // 正文、标题
-    secondary: "rgba(0,0,0,0.7)",  // 次要信息
-    tertiary:  "rgba(0,0,0,0.5)",  // 辅助说明
-    disabled:  "rgba(0,0,0,0.3)",  // 禁用/待执行
-    solid:     "#000000",          // 强调（进行中任务标题）
-  },
-} as const;
-```
-
-### 圆角
-- 卡片：`16px`
-- 按钮 / 输入框：`8px`
-- 小标签 chip：`4px`
-- pill 状态徽章：`100px`
-
-### 阴影
-- 默认卡片：`0 4px 12px rgba(0,0,0,0.10)`
-- 悬浮卡片：`0 8px 24px rgba(0,0,0,0.14)`
-
-### 字体
-- 优先：`PingFang SC`
-- 降级：`-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
-- 代码 / SQL：`Consolas, "Courier New", monospace`
-
-### 动效规范（克制原则）
-- 缓动：`cubic-bezier(0.4, 0, 0.2, 1)`（存为常量 `EASE`）
-- 时长：micro=100ms / normal=200ms / macro=350ms
-- 入场：fade-in + slide-up 8px
-- 退场：fade-out
-- **禁止** spring bounce、rotate 抖动等装饰性动效
-- 进行中状态图标：匀速旋转，2-3s / 圈，`ease: "linear"`
+所有组件的视觉实现必须对齐 `design-dna.json` 中的 token，不得随意使用 Tailwind 默认色。
+开发前先读 `design-dna.json`，token 在组件顶部用 `const` 定义。
 
 ---
 

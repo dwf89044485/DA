@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { MorphingSquare } from "@/components/ui/morphing-square";
 
 // ── Design tokens (直接来自 Figma) ─────────────────────────────
 const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
@@ -178,15 +179,7 @@ function StepIcon({ status }: { status: string }) {
     return <Check style={{ ...s, color: T.green, strokeWidth: 2.5 }} />;
 
   if (status === "in-progress")
-    return (
-      <motion.span
-        style={{ display: "flex" }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 3, ease: "linear", repeat: Infinity }}
-      >
-        <Sparkles style={{ ...s, color: T.blue }} />
-      </motion.span>
-    );
+    return <MorphingSquare size={size} color={T.solid} duration={2} />;
 
   if (status === "need-help")
     return <CircleAlert style={{ ...s, color: T.orange }} />;
@@ -206,15 +199,7 @@ function SubIcon({ status }: { status: string }) {
   if (status === "completed")
     return <Check style={{ ...s, color: T.green, strokeWidth: 2.5 }} />;
   if (status === "in-progress")
-    return (
-      <motion.span
-        style={{ display: "flex" }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 3, ease: "linear", repeat: Infinity }}
-      >
-        <Sparkles style={{ ...s, color: T.blue }} />
-      </motion.span>
-    );
+    return <MorphingSquare size={size} color={T.solid} duration={2} />;
   if (status === "need-help")
     return <CircleAlert style={{ ...s, color: T.orange }} />;
   if (status === "failed")
@@ -399,8 +384,6 @@ export default function Plan() {
               <div style={{
                 display: "flex", flexDirection: "column", gap: 8,
                 padding: "12px 16px",
-                maxHeight: 320,
-                overflowY: "auto",
               }}>
                 {tasks.map((task) => {
                   const isExpanded = expanded.includes(task.id);
@@ -452,8 +435,8 @@ export default function Plan() {
                             {task.title}
                           </span>
 
-                          {/* Subtask chevron */}
-                          {task.subtasks.length > 0 && (
+                          {/* Subtask chevron — pending 任务不显示 */}
+                          {task.subtasks.length > 0 && task.status !== "pending" && (
                             <motion.span
                               animate={{ rotate: isExpanded ? 180 : 0 }}
                               transition={{ duration: DUR.normal, ease: EASE }}
@@ -484,9 +467,9 @@ export default function Plan() {
                         </AnimatePresence>
                       </div>
 
-                      {/* ── Subtask panel ── */}
+                      {/* ── Subtask panel — pending 任务不展开 ── */}
                       <AnimatePresence>
-                        {isExpanded && task.subtasks.length > 0 && (
+                        {isExpanded && task.subtasks.length > 0 && task.status !== "pending" && (
                           <motion.div
                             variants={expandV}
                             initial="hidden" animate="visible" exit="exit"
