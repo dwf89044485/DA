@@ -103,6 +103,8 @@ export default function Home() {
   const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
   const [chatPhase, setChatPhase] = useState<ChatPhase>("welcome");
   const [userMessage, setUserMessage] = useState<string>("");
+  // 对话流分步揭示：0=用户气泡, 1=思考摘要, 2=Plan卡片
+  const [revealStep, setRevealStep] = useState(0);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -149,6 +151,7 @@ export default function Home() {
   const handleNewChat = useCallback(() => {
     setChatPhase("welcome");
     setUserMessage("");
+    setRevealStep(0);
     setSummonedAgent(null);
     setActiveSkills([]);
   }, []);
@@ -378,15 +381,14 @@ export default function Home() {
                   transition={{ duration: 0.3, ease: EASE }}
                   style={{ marginTop: -190, position: "relative" }}
                 >
-                  {/* ── 欢迎标题 + 卡片 — 选中技能后一起退出 ── */}
+                  {/* ── 欢迎标题 + 卡片 — 选中技能后一起退出，叉掉后恢复 ── */}
                   <AnimatePresence>
                     {activeSkills.length === 0 && !summonedAgent && (
                       <motion.div
                         key="welcome-content"
                         initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -12 }}
-                        transition={{ duration: 0.3, ease: EASE }}
+                        animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } }}
+                        exit={{ opacity: 0, y: -12, transition: { duration: 0.15, ease: EASE } }}
                       >
                         <div style={{
                           display: "flex",
@@ -419,7 +421,6 @@ export default function Home() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-
                 </motion.div>
               ) : (
                 <motion.div
@@ -429,32 +430,38 @@ export default function Home() {
                   transition={{ duration: 0.3, ease: EASE }}
                   style={{ display: "flex", flexDirection: "column", gap: 24 }}
                 >
-                  {/* 用户气泡 */}
+                  {/* Step 0: 用户气泡 — 立即出现 */}
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: EASE, delay: 0.1 }}
+                    transition={{ duration: 0.35, ease: EASE }}
+                    onAnimationComplete={() => setRevealStep((s) => Math.max(s, 1))}
                   >
                     <UserMessageBubble content={userMessage} />
                   </motion.div>
 
-                  {/* 思考摘要 */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: EASE, delay: 0.2 }}
-                  >
-                    <ThinkingSummary />
-                  </motion.div>
+                  {/* Step 1: 思考摘要 — 等用户气泡完成后出现 */}
+                  {revealStep >= 1 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: EASE, delay: 0.3 }}
+                      onAnimationComplete={() => setRevealStep((s) => Math.max(s, 2))}
+                    >
+                      <ThinkingSummary />
+                    </motion.div>
+                  )}
 
-                  {/* Agent 执行计划 */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: EASE, delay: 0.3 }}
-                  >
-                    <Plan />
-                  </motion.div>
+                  {/* Step 2: Agent 执行计划 — 等思考摘要完成后出现 */}
+                  {revealStep >= 2 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: EASE, delay: 0.15 }}
+                    >
+                      <Plan />
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -479,9 +486,9 @@ export default function Home() {
               {chatPhase === "welcome" && summonedAgent && (
                 <motion.div
                   key={summonedAgent.name}
-                  initial={{ y: 40, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1, transition: { duration: 0.35, ease: EASE, delay: 0.28 } }}
-                  exit={{ y: 40, opacity: 0, transition: { duration: 0.25, ease: EASE } }}
+                  initial={{ y: 16, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1, transition: { duration: 0.25, ease: EASE } }}
+                  exit={{ y: 16, opacity: 0, transition: { duration: 0.2, ease: EASE } }}
                   style={{
                     position: "absolute",
                     bottom: "calc(100% - 20px)",
