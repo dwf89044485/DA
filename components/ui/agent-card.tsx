@@ -66,6 +66,8 @@ interface AgentCardProps {
   onClick?: () => void;
   /** 展开技能标签点击回调 */
   onSkillClick?: (label: string) => void;
+  /** CTA「立即召唤」按钮点击回调 */
+  onSummon?: () => void;
   /** 受控 hover 状态：外部控制时优先使用 */
   isHovered?: boolean;
 }
@@ -121,6 +123,7 @@ export default function AgentCard({
   ctaLabel = "立即召唤",
   onClick,
   onSkillClick,
+  onSummon,
   isHovered: controlledHover,
 }: AgentCardProps) {
   const [internalHover, setInternalHover] = useState(false);
@@ -460,10 +463,8 @@ export default function AgentCard({
           style={{ flexShrink: 0 }}
         >
           <div
+            onClick={(e) => { e.stopPropagation(); onSummon?.(); }}
             onMouseEnter={(e) => {
-              const div = e.currentTarget as HTMLDivElement;
-              div.style.background = "rgba(0,0,0,0.85)";
-              div.style.boxShadow = "0 2px 8px rgba(0,0,0,0.25)";
             }}
             onMouseLeave={(e) => {
               const div = e.currentTarget as HTMLDivElement;
@@ -639,7 +640,7 @@ const FAN_CARDS = [
   { data: NOVA_DATA,  rotate: 10  },
 ];
 
-export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void }) {
+export function AgentFanCards({ onSkillClick, onSummon }: { onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void; onSummon?: (agent: { name: string; title: string; avatar: string; summonText?: string }) => void }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const getOffset = (i: number) => {
@@ -702,7 +703,7 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string,
                 transition: `box-shadow ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
-              <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
+              <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
             </motion.div>
           );
         })}

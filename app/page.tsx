@@ -117,6 +117,12 @@ export default function Home() {
     requestAnimationFrame(() => chatInputRef.current?.focus());
   }, []);
 
+  const handleSummon = useCallback((agent: { name: string; title: string; avatar: string; summonText?: string }) => {
+    setSummonedAgent(agent);
+    setActiveSkills([]);
+    requestAnimationFrame(() => chatInputRef.current?.focus());
+  }, []);
+
   const handleRemoveSkill = useCallback((id: string) => {
     setActiveSkills((prev) => {
       const next = prev.filter((s) => s.id !== id);
@@ -416,7 +422,7 @@ export default function Home() {
                           }}>专家团随时待命</span>
                         </div>
                         <div style={{ marginTop: -20 }}>
-                          <AgentFanCards onSkillClick={handleSkillClick} />
+                          <AgentFanCards onSkillClick={handleSkillClick} onSummon={handleSummon} />
                         </div>
                       </motion.div>
                     )}
