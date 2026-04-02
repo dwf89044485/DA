@@ -86,8 +86,6 @@ export default function Home() {
   });
   const [activeSkills, setActiveSkills] = useState<SkillChip[]>([]);
   const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
-  // 退场时降低层级，让引导模块从输入框背后消失而非从上层滑走
-  const [agentGuideZIndex, setAgentGuideZIndex] = useState(2);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -95,8 +93,6 @@ export default function Home() {
   const handleSkillClick = useCallback((label: string, agent?: { name: string; title: string; avatar: string; summonText?: string }) => {
     setActiveSkills([{ id: label, label, icon: SKILL_ICON_MAP[label] }]);
     if (agent) {
-      // 入场时先在输入框下层（zIndex:0），动画结束后再升上来
-      setAgentGuideZIndex(0);
       setSummonedAgent(agent);
     }
     requestAnimationFrame(() => chatInputRef.current?.focus());
@@ -106,7 +102,6 @@ export default function Home() {
     setActiveSkills((prev) => {
       const next = prev.filter((s) => s.id !== id);
       if (next.length === 0) {
-        setAgentGuideZIndex(0);
         requestAnimationFrame(() => setSummonedAgent(null));
       }
       return next;
@@ -114,12 +109,8 @@ export default function Home() {
   }, []);
 
   const handleRemoveAgent = useCallback(() => {
-    // 先把引导模块压到输入框下层，让退场动画从背后滑走
-    setAgentGuideZIndex(0);
-    requestAnimationFrame(() => {
-      setSummonedAgent(null);
-      setActiveSkills([]);
-    });
+    setSummonedAgent(null);
+    setActiveSkills([]);
   }, []);
 
   const handleMenuClick = useCallback((id: string) => {
@@ -374,16 +365,12 @@ export default function Home() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 40, opacity: 0 }}
                   transition={{ duration: 0.35, ease: EASE }}
-                  onAnimationComplete={(definition) => {
-                    // 入场完成后提升层级，让头像不被输入框彩色投影遮住
-                    if (definition === "animate") setAgentGuideZIndex(2);
-                  }}
                   style={{
                     position: "absolute",
                     bottom: "calc(100% - 20px)",
                     left: 0,
                     right: 0,
-                    zIndex: agentGuideZIndex,
+                    zIndex: 0,
                     display: "flex",
                     alignItems: "flex-end",
                     paddingBottom: 20,
@@ -451,8 +438,8 @@ export default function Home() {
               )}
             </AnimatePresence>
 
-            {/* 输入框：zIndex=1 盖住 agent 头像底部 */}
-            <div style={{ position: "relative", zIndex: 1 }}>
+            {/* 输入框：不设 zIndex，避免创建 stacking context，让内部 glow 的负 z-index 能逃逸到父级 */}
+            <div style={{ position: "relative" }}>
               <ClaudeChatInput
                 ref={chatInputRef}
                 placeholder="选择一位专家或直接分配任务"

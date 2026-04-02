@@ -91,7 +91,7 @@ function TreeItem({
           ) : null}
         </span>
 
-        {/* 内容 pill — 选中 #F2F4F8 / hover #F7F8FA */}
+        {/* 内容 pill — hover/selected 背景仅在此层，不横向贯通 */}
         <span
           style={{
             flex: 1,

@@ -23,7 +23,7 @@ const C = {
   textSecondary: "rgba(0,0,0,0.7)",
   textTertiary: "rgba(0,0,0,0.5)",
   textDisabled: "rgba(0,0,0,0.3)",
-  hoverBg: "#F7F8FA",
+  hoverBg: "#EFF1F5",
   createBtnBg: "rgba(0,0,0,0.75)",
 } as const;
 
@@ -285,18 +285,22 @@ export default function StudioFileTable() {
           </button>
 
           {/* 创建按钮 — 深色 pill 44h min-w88 */}
-          <button style={{
-            height: 44, minWidth: 88, borderRadius: 100,
-            backgroundColor: C.createBtnBg,
-            boxShadow: "0px 2px 4px -2px rgba(0,0,0,0.2)",
-            color: "#FFFFFF",
-            border: "none", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-            padding: "12px 20px",
-            fontSize: 14, fontWeight: 500, fontFamily: FONT,
-            overflow: "hidden",
-            transition: "opacity 100ms",
-          }}>
+          <button
+            style={{
+              height: 44, minWidth: 88, borderRadius: 100,
+              backgroundColor: C.createBtnBg,
+              boxShadow: "0px 2px 4px -2px rgba(0,0,0,0.2)",
+              color: "#FFFFFF",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              padding: "12px 20px",
+              fontSize: 14, fontWeight: 500, fontFamily: FONT,
+              overflow: "hidden",
+              transition: "background 100ms",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(0,0,0,0.88)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = C.createBtnBg; }}
+          >
             <Plus size={16} color="#FFFFFF" />
             创建
           </button>
