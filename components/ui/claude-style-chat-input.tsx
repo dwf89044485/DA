@@ -138,13 +138,13 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   const [files, setFiles] = useState<AttachedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasContent = message.trim().length > 0 || files.length > 0;
-  // 激活态：聚焦或有技能标签或有 agent 标签时触发
-  const isActive = isFocused || skills.length > 0 || !!agentChip;
+
+  // shouldBeActive 是即时值，直接驱动 UI
+  const shouldBeActive = isFocused || skills.length > 0 || !!agentChip;
 
   // 暴露 focus 方法给父组件
   useImperativeHandle(ref, () => ({
@@ -206,21 +206,23 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
     >
       {/* ── 彩色流动边框容器 ── */}
       {/* 原理：外层 padding:1.5px + overflow:hidden，内层白色 bg，中间旋转 conic-gradient 作为边框 */}
+      {/* 外层不设 zIndex，不创建 stacking context，让 glow 的负 z-index 能逃逸到父级 */}
       <div style={{ position: "relative" }}>
-        {/* ── 弥散投影层：同色 conic-gradient + blur，跟随旋转 ── */}
+        {/* ── 弥散投影层：负 z-index 使其在父级 stacking context 中排到最底 ── */}
         <div
           style={{
             position: "absolute",
-            inset: "var(--glow-inset, -8px)",
+            inset: "var(--glow-inset, -6px)",
             borderRadius: 30,
-            background: isActive
+            background: shouldBeActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "transparent",
-            filter: "blur(22px)",
-            opacity: isActive ? 0.4 : 0,
-            animation: isActive ? "border-rotate 3s linear infinite, glow-breathe 6s ease-in-out infinite" : "none",
+            filter: "blur(18px)",
+            opacity: shouldBeActive ? 0.6 : 0,
+            animation: shouldBeActive ? "border-rotate 4s linear infinite, glow-breathe 5s ease-in-out infinite" : "none",
             transition: "opacity 0.3s ease",
             pointerEvents: "none",
+            zIndex: -1,
           }}
         />
 
@@ -228,13 +230,13 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         <div
           style={{
             position: "relative",
-            borderRadius: isActive ? 25.5 : 25,   // 24 + border padding
-            padding: isActive ? "1.5px" : "1px",
+            borderRadius: shouldBeActive ? 25.5 : 25,   // 24 + border padding
+            padding: shouldBeActive ? "1.5px" : "1px",
             transition: "padding 0.3s ease",
-            background: isActive
+            background: shouldBeActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "#E8EAED",
-            animation: isActive ? "border-rotate 3s linear infinite" : "none",
+            animation: shouldBeActive ? "border-rotate 4s linear infinite" : "none",
           }}
         >
         {/* ── 内层白色主容器 ── */}
@@ -248,7 +250,8 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             display: "flex",
             flexDirection: "column",
             paddingTop: 16,
-            overflow: "hidden",
+            overflowY: "auto",
+            overflowX: "hidden",
           }}
         >
           {/* 文件预览区 */}
@@ -270,7 +273,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
               position: "relative",
               padding: "0 24px",
               // 激活态：最小高度 88px（对齐 Figma），默认：auto
-              minHeight: isActive ? 88 : 24,
+              minHeight: shouldBeActive ? 88 : 24,
               transition: "min-height 0.25s cubic-bezier(0.4,0,0.2,1)",
             }}
           >
@@ -348,6 +351,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
           {/* ── 底部操作栏 ── */}
           <div
+            onClick={() => textareaRef.current?.focus()}
             style={{
               display: "flex",
               alignItems: "center",
@@ -361,16 +365,20 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 display: "flex",
                 gap: 4,
                 alignItems: "center",
-                opacity: isActive ? 1 : 0,
-                transform: isActive ? "translateY(0)" : "translateY(4px)",
+                opacity: shouldBeActive ? 1 : 0,
+                transform: shouldBeActive ? "translateY(0)" : "translateY(4px)",
                 transition: "opacity 0.25s ease, transform 0.25s ease",
-                pointerEvents: isActive ? "auto" : "none",
+                pointerEvents: shouldBeActive ? "auto" : "none",
               }}
             >
               {/* Agent 角色标签：排第一位 */}
               {agentChip && (
                 <div
-                  onClick={() => onRemoveAgent?.()}
+                  onClick={() => {
+                    onRemoveAgent?.();
+                    // 叉掉 agent 标签后保持激活态：聚焦 textarea
+                    textareaRef.current?.focus();
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -411,7 +419,11 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 skills.map((skill) => (
                   <div
                     key={skill.id}
-                    onClick={() => onRemoveSkill?.(skill.id)}
+                    onClick={() => {
+                      onRemoveSkill?.(skill.id);
+                      // 叉掉标签后保持激活态：聚焦 textarea
+                      textareaRef.current?.focus();
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
