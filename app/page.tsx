@@ -86,27 +86,40 @@ export default function Home() {
   });
   const [activeSkills, setActiveSkills] = useState<SkillChip[]>([]);
   const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
+  // 退场时降低层级，让引导模块从输入框背后消失而非从上层滑走
+  const [agentGuideZIndex, setAgentGuideZIndex] = useState(2);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
   const handleSkillClick = useCallback((label: string, agent?: { name: string; title: string; avatar: string; summonText?: string }) => {
     setActiveSkills([{ id: label, label, icon: SKILL_ICON_MAP[label] }]);
-    if (agent) setSummonedAgent(agent);
+    if (agent) {
+      // 入场时先在输入框下层（zIndex:0），动画结束后再升上来
+      setAgentGuideZIndex(0);
+      setSummonedAgent(agent);
+    }
     requestAnimationFrame(() => chatInputRef.current?.focus());
   }, []);
 
   const handleRemoveSkill = useCallback((id: string) => {
     setActiveSkills((prev) => {
       const next = prev.filter((s) => s.id !== id);
-      if (next.length === 0) setSummonedAgent(null);
+      if (next.length === 0) {
+        setAgentGuideZIndex(0);
+        requestAnimationFrame(() => setSummonedAgent(null));
+      }
       return next;
     });
   }, []);
 
   const handleRemoveAgent = useCallback(() => {
-    setSummonedAgent(null);
-    setActiveSkills([]);
+    // 先把引导模块压到输入框下层，让退场动画从背后滑走
+    setAgentGuideZIndex(0);
+    requestAnimationFrame(() => {
+      setSummonedAgent(null);
+      setActiveSkills([]);
+    });
   }, []);
 
   const handleMenuClick = useCallback((id: string) => {
@@ -192,7 +205,7 @@ export default function Home() {
           style={{
             position: "absolute",
             inset: 0,
-            pointerEvents: viewState === "studio" ? "auto" : "none",
+            pointerEvents: "none",
             transformOrigin: "bottom right",
             willChange: "opacity, transform, filter",
             zIndex: 1,
@@ -299,7 +312,7 @@ export default function Home() {
                   animate={{ y: 0 }}
                   exit={{ opacity: 0, y: -16 }}
                   transition={{ duration: 0.3, ease: EASE }}
-                  style={{ marginTop: -50, position: "relative" }}
+                  style={{ marginTop: -190, position: "relative" }}
                 >
                   {/* ── 欢迎标题 ── */}
                   <div style={{
@@ -308,6 +321,7 @@ export default function Home() {
                     alignItems: "center",
                     gap: 8,
                     padding: "40px 0 24px",
+                    transform: "translateY(-60px)",
                   }}>
                     <span style={{
                       fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -328,25 +342,29 @@ export default function Home() {
                   </div>
 
                   {/* Agent 名片卡片 — 四卡扇形排列 */}
-                  <div style={{ marginTop: 40 }}>
+                  <div style={{ marginTop: -20 }}>
                     <AgentFanCards onSkillClick={handleSkillClick} />
                   </div>
 
                 </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </div>
 
-        {/* ── 底部输入框区域 ── */}
+        {/* ── 置底输入框：固定距底部 32px，高度向上伸缩，不影响上方卡片布局 ── */}
         <div style={{
-          flexShrink: 0,
+          position: "absolute",
+          left: 20,
+          right: 20,
+          bottom: 32,
           display: "flex",
           justifyContent: "center",
-          padding: "0 20px 32px",
+          pointerEvents: "none",
+          zIndex: 3,
         }}>
-          <div style={{ width: "100%", maxWidth: 880, position: "relative" }}>
-
+          <div style={{ width: "100%", maxWidth: 880, position: "relative", pointerEvents: "auto" }}>
             {/* ── Agent 召唤引导：头像从输入框后面伸出 ── */}
             <AnimatePresence>
               {summonedAgent && (
@@ -356,12 +374,16 @@ export default function Home() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 40, opacity: 0 }}
                   transition={{ duration: 0.35, ease: EASE }}
+                  onAnimationComplete={(definition) => {
+                    // 入场完成后提升层级，让头像不被输入框彩色投影遮住
+                    if (definition === "animate") setAgentGuideZIndex(2);
+                  }}
                   style={{
                     position: "absolute",
                     bottom: "calc(100% - 20px)",
-                    left: 6,
+                    left: 0,
                     right: 0,
-                    zIndex: 2,
+                    zIndex: agentGuideZIndex,
                     display: "flex",
                     alignItems: "flex-end",
                     paddingBottom: 20,
@@ -369,29 +391,19 @@ export default function Home() {
                   }}
                 >
                   {/* 头像 */}
-                  <div style={{
-                    width: 120,
-                    height: 96,
-                    flexShrink: 0,
-                    overflow: "hidden",
-                    position: "relative",
-                    marginLeft: 12,
-                  }}>
-                    <img
-                      src={summonedAgent.avatar}
-                      alt={summonedAgent.name}
-                      style={{
-                        position: "absolute",
-                        left: -15,
-                        top: -4,
-                        width: 160,
-                        height: 160,
-                        objectFit: "cover",
-                        objectPosition: "top center",
-                        pointerEvents: "none",
-                      }}
-                    />
-                  </div>
+                  <img
+                    src={summonedAgent.avatar}
+                    alt={summonedAgent.name}
+                    style={{
+                      flexShrink: 0,
+                      width: 120,
+                      height: 106,
+                      objectFit: "cover",
+                      objectPosition: "top center",
+                      pointerEvents: "none",
+                      marginLeft: 20,
+                    }}
+                  />
 
                   {/* 引导文案 */}
                   <div style={{
@@ -400,6 +412,7 @@ export default function Home() {
                     gap: 6,
                     paddingBottom: 28,
                     flexWrap: "nowrap",
+                    marginLeft: 6,
                   }}>
                     <span style={{
                       fontFamily: FONT,

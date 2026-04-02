@@ -46,8 +46,10 @@ interface AgentCardProps {
   nameColor?: string;
   /** 中文头衔 */
   title: string;
-  /** 头像图片 URL */
+  /** 头像图片 URL（上层，需透明通道） */
   avatar: string;
+  /** 背景图片 URL（底层） */
+  bgImage?: string;
   /** 简介描述（hover 展开时替换标签区） */
   description?: string;
   /** 数据指标（hover 展开时显示） */
@@ -110,6 +112,7 @@ export default function AgentCard({
   nameColor,
   title,
   avatar,
+  bgImage,
   description,
   stats,
   skills,
@@ -168,7 +171,26 @@ export default function AgentCard({
           zIndex: 2,
         }}
       />
-      {/* ── 头像 ─────────────────────────────────────────── */}
+      {/* ── 底层：背景图（可选，透过头像透明区域显现） ───── */}
+      {bgImage && (
+        <img
+          src={bgImage}
+          alt=""
+          aria-hidden="true"
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "top center",
+            pointerEvents: "none",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        />
+      )}
+      {/* ── 上层：人物头像 ───────────────────────────────── */}
       <img
         src={avatar}
         alt={name}
@@ -486,7 +508,8 @@ const ic = "rgba(0,0,0,0.45)";
 export const RIGEL_DATA: AgentCardProps = {
   name: "Rigel",
   title: "数仓工程专家",
-  avatar: "/agents/rigel.png",
+  avatar: "/agents/1a.png",
+  bgImage: "/agents/1b.png",
   summonText: "今天想开发什么数仓？",
   description:
     "擅长数仓建模与全链路工程开发，把业务需求转化为可落地的数据架构，调度、运维、异常处理一手包办",
@@ -521,7 +544,8 @@ export const VEGA_DATA: AgentCardProps = {
   name: "Vega",
   nameColor: "#00BBA2",
   title: "数据分析专家",
-  avatar: "/agents/vega.png",
+  avatar: "/agents/2a.png",
+  bgImage: "/agents/2b.png",
   summonText: "今天想分析什么数据？",
   description:
     "精通多维数据分析与智能洞察，用自然语言取数，快速识别趋势异常，输出高质量数据报告",
@@ -550,7 +574,8 @@ export const ORION_DATA: AgentCardProps = {
   name: "Orion",
   nameColor: "#CC6B3A",
   title: "数据治理专家",
-  avatar: "/agents/altair.png",
+  avatar: "/agents/3a.png",
+  bgImage: "/agents/3b.png",
   summonText: "今天想治理哪些数据？",
   description:
     "全面覆盖数据质量、血缘追踪与元数据管理，自动识别口径冲突，确保数据资产健康可信",
@@ -579,7 +604,8 @@ export const NOVA_DATA: AgentCardProps = {
   name: "Nova",
   nameColor: "#934BFF",
   title: "业务运营专家",
-  avatar: "/agents/sirius.png",
+  avatar: "/agents/4a.png",
+  bgImage: "/agents/4b.png",
   summonText: "今天想运营什么业务？",
   description:
     "专注业务指标监控与运营看板搭建，智能预警异常波动，帮助业务团队快速自助取数、驱动决策",
@@ -621,7 +647,7 @@ export function AgentFanCards({ onSkillClick }: { onSkillClick?: (label: string,
     const dist = Math.abs(i - hoveredIdx);
     if (dist === 1) {
       const dir = i < hoveredIdx ? -1 : 1;
-      return { x: dir * 26 };
+      return { x: dir * 30 };
     }
     if (dist === 2) {
       const dir = i < hoveredIdx ? -1 : 1;
