@@ -216,3 +216,16 @@ Key routing rules:
 - Architecture review → invoke plan-eng-review
 - Save progress, checkpoint, resume → invoke checkpoint
 - Code quality, health check → invoke health
+
+---
+
+## 已知陷阱（避免重复犯错）
+
+### CLAUDE.md 是 symlink
+
+`CLAUDE.md` → `AGENTS.md`（symlink）。
+
+- 编辑 `CLAUDE.md` 实际写入 `AGENTS.md`
+- `git add CLAUDE.md` 是 no-op，symlink 本身没变
+- 提交时必须 `git add AGENTS.md`
+- 如果 `git diff -- <file>` 无输出但文件看起来有改动，先 `ls -la <file>` 确认是否是 symlink，再看 `git status` 找真正的 target
