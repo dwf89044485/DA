@@ -28,7 +28,7 @@ interface ParameterDef {
 }
 
 const PARAMETERS: ParameterDef[] = [
-  { key: "hoverHeight", label: "悬浮高度", min: 0, max: 2, step: 0.05 },
+  { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05 },
   { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1 },
   { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1 },
   { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
