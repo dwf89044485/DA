@@ -40,17 +40,63 @@ interface StatItem {
 }
 
 export interface FanCardsConfig {
+  // ── 扇形布局 ──
   hoverHeight: number;       // 悬浮高度 0~1，驱动 Y偏移/放大/阴影
   dist1X: number;            // 近邻推开  默认 30
   dist2X: number;            // 次邻推开  默认 16
   overlapX: number;          // 卡片重叠  默认 -8
+  // ── 悬浮物理 ──
+  yFactor: number;           // Y偏移系数（-h * yFactor）
+  scaleFactor: number;       // 放大系数（1 + h * scaleFactor）
+  // ── Hover 投影 ──
+  shadowBlur1Range: number;  // 主投影模糊增量
+  shadowY1Range: number;     // 主投影Y偏移增量
+  shadowAlpha1Range: number; // 主投影透明度增量
+  shadowBlur2Range: number;  // 副投影模糊增量
+  shadowY2Range: number;     // 副投影Y偏移增量
+  shadowAlpha2Range: number; // 副投影透明度增量
+  // ── 静态投影（Rest） ──
+  restShadowY: number;       // 静态投影Y
+  restShadowBlur: number;    // 静态投影模糊
+  restShadowAlpha: number;   // 静态投影透明度
+  // ── 扇形角度 ──
+  rotate1: number;           // 卡1旋转
+  rotate2: number;           // 卡2旋转
+  rotate3: number;           // 卡3旋转
+  rotate4: number;           // 卡4旋转
+  outerCardOffset: number;   // 外侧卡下沉
+  // ── 动画 ──
+  transitionDuration: number; // 动画时长（秒）
 }
 
 export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
+  // 扇形布局
   hoverHeight: 0.5,
   dist1X: 30,
   dist2X: 16,
   overlapX: -8,
+  // 悬浮物理
+  yFactor: 40,
+  scaleFactor: 0.4,
+  // Hover 投影
+  shadowBlur1Range: 152,
+  shadowY1Range: 78,
+  shadowAlpha1Range: 0.18,
+  shadowBlur2Range: 56,
+  shadowY2Range: 30,
+  shadowAlpha2Range: 0.10,
+  // 静态投影
+  restShadowY: 2,
+  restShadowBlur: 8,
+  restShadowAlpha: 0.04,
+  // 扇形角度
+  rotate1: -10,
+  rotate2: -3,
+  rotate3: 3,
+  rotate4: 10,
+  outerCardOffset: 30,
+  // 动画
+  transitionDuration: 0.35,
 };
 
 /**
@@ -58,19 +104,22 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
  * h=0 时与非 hover 状态完全一致（y=0, scale=1, 默认阴影）
  * h=1 时最大悬浮效果
  */
-const REST_SHADOW = "0 2px 8px rgba(0,0,0,0.04)";
+function restShadow(config: FanCardsConfig) {
+  return `0 ${config.restShadowY}px ${config.restShadowBlur}px rgba(0,0,0,${config.restShadowAlpha.toFixed(2)})`;
+}
 
-function deriveHoverPhysics(h: number) {
-  if (h === 0) return { y: 0, scale: 1, shadow: REST_SHADOW };
-  const y = -h * 40;
-  const scale = 1 + h * 0.4;
+function deriveHoverPhysics(h: number, config: FanCardsConfig) {
+  const rest = restShadow(config);
+  if (h === 0) return { y: 0, scale: 1, shadow: rest };
+  const y = -h * config.yFactor;
+  const scale = 1 + h * config.scaleFactor;
   // 阴影从 rest 状态线性过渡到最大悬浮状态
-  const shadowBlur1 = 8 + h * 152;       // 8 → 160
-  const shadowY1 = 2 + h * 78;           // 2 → 80
-  const shadowAlpha1 = 0.04 + h * 0.18;  // 0.04 → 0.22
-  const shadowBlur2 = 8 + h * 56;        // 8 → 64
-  const shadowY2 = 2 + h * 30;           // 2 → 32
-  const shadowAlpha2 = 0.04 + h * 0.10;  // 0.04 → 0.14
+  const shadowBlur1 = config.restShadowBlur + h * config.shadowBlur1Range;
+  const shadowY1 = config.restShadowY + h * config.shadowY1Range;
+  const shadowAlpha1 = config.restShadowAlpha + h * config.shadowAlpha1Range;
+  const shadowBlur2 = config.restShadowBlur + h * config.shadowBlur2Range;
+  const shadowY2 = config.restShadowY + h * config.shadowY2Range;
+  const shadowAlpha2 = config.restShadowAlpha + h * config.shadowAlpha2Range;
   const shadow = `0 ${shadowY1.toFixed(0)}px ${shadowBlur1.toFixed(0)}px rgba(0,0,0,${shadowAlpha1.toFixed(2)}), 0 ${shadowY2.toFixed(0)}px ${shadowBlur2.toFixed(0)}px rgba(0,0,0,${shadowAlpha2.toFixed(2)})`;
   return { y, scale, shadow };
 }
@@ -669,12 +718,7 @@ export const NOVA_DATA: AgentCardProps = {
 };
 
 // ── 四卡扇形排列组件 ───────────────────────────────────────────
-const FAN_CARDS = [
-  { data: RIGEL_DATA, rotate: -10 },
-  { data: VEGA_DATA,  rotate: -3  },
-  { data: ORION_DATA, rotate: 3   },
-  { data: NOVA_DATA,  rotate: 10  },
-];
+const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, ORION_DATA, NOVA_DATA];
 
 export function AgentFanCards({
   onSkillClick,
@@ -723,10 +767,13 @@ export function AgentFanCards({
         gap: 0,
         position: "relative",
       }}>
-        {FAN_CARDS.map(({ data, rotate }, i) => {
+        {FAN_CARD_DATA.map((data, i) => {
+          const rotates = [config.rotate1, config.rotate2, config.rotate3, config.rotate4];
+          const rotate = rotates[i] ?? 0;
           const isHovered = activeHoveredIdx === i;
           const { x } = getOffset(i);
-          const hover = deriveHoverPhysics(config.hoverHeight);
+          const hover = deriveHoverPhysics(config.hoverHeight, config);
+          const rest = restShadow(config);
           return (
             <motion.div
               key={data.name}
@@ -736,21 +783,21 @@ export function AgentFanCards({
                 rotate,
                 scale: isHovered ? hover.scale : 1,
               }}
-              transition={{ duration: 0.35, ease: EASE }}
+              transition={{ duration: config.transitionDuration, ease: EASE }}
               onMouseEnter={() => !isEditorHovered && setHoveredIdx(i)}
               onMouseLeave={() => !isEditorHovered && setHoveredIdx(null)}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
-                marginTop: (i === 0 || i === 3) ? 30 : 0,
+                marginTop: (i === 0 || i === 3) ? config.outerCardOffset : 0,
                 transformOrigin: "center bottom",
                 zIndex: isHovered ? 20 : 1,
                 position: "relative",
                 boxShadow: isHovered
                   ? hover.shadow
-                  : REST_SHADOW,
+                  : rest,
                 borderRadius: 24,
-                transition: "box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)",
+                transition: `box-shadow ${config.transitionDuration}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
               <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />

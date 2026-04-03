@@ -27,12 +27,67 @@ interface ParameterDef {
   step: number;
 }
 
-const PARAMETERS: ParameterDef[] = [
-  { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05 },
-  { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1 },
-  { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1 },
-  { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
+interface ParameterGroup {
+  label: string;
+  params: ParameterDef[];
+}
+
+const PARAMETER_GROUPS: ParameterGroup[] = [
+  {
+    label: "扇形布局",
+    params: [
+      { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05 },
+      { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1 },
+      { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1 },
+      { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
+    ],
+  },
+  {
+    label: "悬浮物理",
+    params: [
+      { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1 },
+      { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02 },
+    ],
+  },
+  {
+    label: "Hover 投影",
+    params: [
+      { key: "shadowBlur1Range", label: "主投影模糊", min: 0, max: 300, step: 2 },
+      { key: "shadowY1Range", label: "主投影Y偏移", min: 0, max: 150, step: 1 },
+      { key: "shadowAlpha1Range", label: "主投影透明度", min: 0, max: 0.5, step: 0.01 },
+      { key: "shadowBlur2Range", label: "副投影模糊", min: 0, max: 150, step: 2 },
+      { key: "shadowY2Range", label: "副投影Y偏移", min: 0, max: 80, step: 1 },
+      { key: "shadowAlpha2Range", label: "副投影透明度", min: 0, max: 0.3, step: 0.01 },
+    ],
+  },
+  {
+    label: "静态投影",
+    params: [
+      { key: "restShadowY", label: "投影Y", min: 0, max: 20, step: 1 },
+      { key: "restShadowBlur", label: "投影模糊", min: 0, max: 40, step: 1 },
+      { key: "restShadowAlpha", label: "投影透明度", min: 0, max: 0.2, step: 0.01 },
+    ],
+  },
+  {
+    label: "扇形角度",
+    params: [
+      { key: "rotate1", label: "卡1旋转", min: -30, max: 0, step: 1 },
+      { key: "rotate2", label: "卡2旋转", min: -15, max: 0, step: 1 },
+      { key: "rotate3", label: "卡3旋转", min: 0, max: 15, step: 1 },
+      { key: "rotate4", label: "卡4旋转", min: 0, max: 30, step: 1 },
+      { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1 },
+    ],
+  },
+  {
+    label: "动画",
+    params: [
+      { key: "transitionDuration", label: "动画时长", min: 0.1, max: 1.0, step: 0.05 },
+    ],
+  },
 ];
+
+// 所有参数的扁平列表（用于代码生成和全量 reset 等）
+const ALL_PARAMETERS = PARAMETER_GROUPS.flatMap(g => g.params);
 
 interface FanCardEditorProps {
   config: FanCardsConfig;
@@ -44,7 +99,17 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
   const [isCodeExpanded, setIsCodeExpanded] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    // 默认只展开第一组
+    const init: Record<string, boolean> = {};
+    PARAMETER_GROUPS.forEach((g, i) => { init[g.label] = i !== 0; });
+    return init;
+  });
   const sliderId = useId();
+
+  const toggleGroup = useCallback((label: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
 
   const handleCollapse = useCallback(() => {
     // 关键：收起时立即释放卡片 hover 状态
@@ -68,18 +133,16 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
   const handleMouseLeave = () => onHoverChange?.(false);
 
   const generateCode = () => {
-    // 精确匹配 agent-card.tsx 中 L49-54 的 DEFAULT_FAN_CONFIG 格式
-    // 复制后直接替换该代码块即可生效
     const fmt = (key: keyof FanCardsConfig) => {
-      const p = PARAMETERS.find(p => p.key === key)!;
+      const p = ALL_PARAMETERS.find(p => p.key === key);
+      if (!p) return String(config[key]);
       return p.step < 1 ? config[key].toFixed(2) : String(config[key]);
     };
-    return `export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
-  hoverHeight: ${fmt("hoverHeight")},
-  dist1X: ${fmt("dist1X")},
-  dist2X: ${fmt("dist2X")},
-  overlapX: ${fmt("overlapX")},
-};`;
+    const lines = Object.keys(DEFAULT_FAN_CONFIG).map(k => {
+      const key = k as keyof FanCardsConfig;
+      return `  ${key}: ${fmt(key)},`;
+    });
+    return `export const DEFAULT_FAN_CONFIG: FanCardsConfig = {\n${lines.join("\n")}\n};`;
   };
 
   const handleCopy = () => {
@@ -92,6 +155,80 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
     ((config[param.key] - param.min) / (param.max - param.min)) * 100;
 
   const cls = `fan-slider-${sliderId.replace(/:/g, "")}`;
+
+  const renderSlider = (param: ParameterDef) => {
+    const pct = getPercent(param);
+    const isDefault = config[param.key] === DEFAULT_FAN_CONFIG[param.key];
+    return (
+      <div key={param.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <label style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.65)", display: "flex", alignItems: "baseline", gap: 4 }}>
+            {param.label}
+            <span style={{ fontSize: 9, fontWeight: 400, color: "rgba(0,0,0,0.28)", fontFamily: "'Monaco', 'Menlo', monospace" }}>
+              {param.key}
+            </span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{
+              fontSize: 11,
+              fontWeight: 500,
+              color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
+              fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', monospace",
+              minWidth: 32,
+              textAlign: "right",
+              transition: "color 100ms",
+            }}>
+              {config[param.key].toFixed(param.step < 1 ? 2 : 0)}
+            </span>
+            {!isDefault && (
+              <button
+                onClick={() => handleResetParameter(param.key)}
+                title="重置为默认值"
+                style={{
+                  width: 18, height: 18,
+                  border: "none",
+                  background: "rgba(0,0,0,0.05)",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "rgba(0,0,0,0.4)",
+                  transition: "all 100ms",
+                  padding: 0, flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "rgba(0,0,0,0.7)";
+                  e.currentTarget.style.background = "rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(0,0,0,0.4)";
+                  e.currentTarget.style.background = "rgba(0,0,0,0.05)";
+                }}
+              >
+                <RotateCcw size={11} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <input
+          type="range"
+          className={cls}
+          min={param.min}
+          max={param.max}
+          step={param.step}
+          value={config[param.key]}
+          onChange={(e) => handleSliderChange(param.key, parseFloat(e.target.value))}
+          style={{
+            background: `linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.22) ${pct}%, #E6E9EF ${pct}%, #E6E9EF 100%)`,
+          }}
+        />
+      </div>
+    );
+  };
 
   return (
     <>
@@ -244,7 +381,7 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               position: "absolute",
               top: 20,
               right: 20,
-              width: 232,
+              width: 260,
               borderRadius: 12,
               backgroundColor: "rgba(255,255,255,0.72)",
               backdropFilter: "blur(20px) saturate(60%)",
@@ -295,78 +432,64 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               </button>
             </div>
 
-            {/* ── 参数区 ── */}
-            <div style={{ padding: "10px 12px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
-              {PARAMETERS.map((param) => {
-                const pct = getPercent(param);
-                const isDefault = config[param.key] === DEFAULT_FAN_CONFIG[param.key];
+            {/* ── 参数区（可滚动） ── */}
+            <div style={{ maxHeight: "60vh", overflowY: "auto", overflowX: "hidden" }}>
+              {PARAMETER_GROUPS.map((group) => {
+                const isGroupCollapsed = collapsedGroups[group.label] ?? false;
                 return (
-                  <div key={param.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <div style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}>
-                      <label style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.65)", display: "flex", alignItems: "baseline", gap: 4 }}>
-                        {param.label}
-                        <span style={{ fontSize: 9, fontWeight: 400, color: "rgba(0,0,0,0.28)", fontFamily: "'Monaco', 'Menlo', monospace" }}>
-                          {param.key}
-                        </span>
-                      </label>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
-                          fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', monospace",
-                          minWidth: 32,
-                          textAlign: "right",
-                          transition: "color 100ms",
-                        }}>
-                          {config[param.key].toFixed(param.step < 1 ? 2 : 0)}
-                        </span>
-                        {!isDefault && (
-                          <button
-                            onClick={() => handleResetParameter(param.key)}
-                            title="重置为默认值"
-                            style={{
-                              width: 18, height: 18,
-                              border: "none",
-                              background: "rgba(0,0,0,0.05)",
-                              borderRadius: 4,
-                              cursor: "pointer",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              color: "rgba(0,0,0,0.4)",
-                              transition: "all 100ms",
-                              padding: 0, flexShrink: 0,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = "rgba(0,0,0,0.7)";
-                              e.currentTarget.style.background = "rgba(0,0,0,0.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = "rgba(0,0,0,0.4)";
-                              e.currentTarget.style.background = "rgba(0,0,0,0.05)";
-                            }}
-                          >
-                            <RotateCcw size={11} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <input
-                      type="range"
-                      className={cls}
-                      min={param.min}
-                      max={param.max}
-                      step={param.step}
-                      value={config[param.key]}
-                      onChange={(e) => handleSliderChange(param.key, parseFloat(e.target.value))}
+                  <div key={group.label} style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                    {/* 分组标题 — 可折叠 */}
+                    <button
+                      onClick={() => toggleGroup(group.label)}
                       style={{
-                        background: `linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.22) ${pct}%, #E6E9EF ${pct}%, #E6E9EF 100%)`,
+                        width: "100%",
+                        padding: "7px 12px",
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "rgba(0,0,0,0.45)",
+                        fontFamily: FONT,
+                        transition: "background 100ms",
+                        letterSpacing: "0.02em",
                       }}
-                    />
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.03)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <span style={{
+                        display: "inline-block",
+                        transition: "transform 200ms",
+                        transform: isGroupCollapsed ? "rotate(0deg)" : "rotate(90deg)",
+                        fontSize: 9,
+                      }}>
+                        ▶
+                      </span>
+                      <span>{group.label}</span>
+                      <span style={{ fontSize: 9, color: "rgba(0,0,0,0.25)", fontWeight: 400 }}>
+                        {group.params.length}
+                      </span>
+                    </button>
+
+                    {/* 参数滑块 */}
+                    <AnimatePresence>
+                      {!isGroupCollapsed && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2, ease: EASE }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div style={{ padding: "2px 12px 10px", display: "flex", flexDirection: "column", gap: 8 }}>
+                            {group.params.map(renderSlider)}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 );
               })}
