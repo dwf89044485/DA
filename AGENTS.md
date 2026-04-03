@@ -129,6 +129,7 @@ wedata/
 - ❌ 不得在组件里调用真实后端 API（这是 demo，数据全部 mock）
 - ❌ 不得使用 Tailwind 默认语义色（`bg-primary`、`text-muted-foreground` 等）替代 Design DNA token
 - ❌ 不得创建多个页面路由（`/demo/xxx` 等）——只有一个主页面
+- ❌ **`web-lakehouse/` 目录完全禁区**：未经用户明确要求，禁止阅读、搜索、修改该目录下的任何文件。TypeScript 检查、grep、glob 等操作必须排除该路径。Git 操作同理——不得 add/commit/diff 该目录。该目录已在 `.gitignore` 中排除，不属于本项目。
 
 ---
 

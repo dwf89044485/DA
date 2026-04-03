@@ -40,24 +40,40 @@ interface StatItem {
 }
 
 export interface FanCardsConfig {
-  hoverY: number;           // 悬浮上移  默认 -10
-  hoverScale: number;       // 悬浮放大  默认 1.2
-  dist1X: number;           // 近邻推开  默认 30
-  dist2X: number;           // 次邻推开  默认 16
-  overlapX: number;         // 卡片重叠  默认 -8
-  outerMarginTop: number;   // 外侧卡下沉 默认 30
-  animDuration: number;     // 动画时长  默认 0.35
+  hoverHeight: number;       // 悬浮高度 0~1，驱动 Y偏移/放大/阴影
+  dist1X: number;            // 近邻推开  默认 30
+  dist2X: number;            // 次邻推开  默认 16
+  overlapX: number;          // 卡片重叠  默认 -8
 }
 
 export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
-  hoverY: -10,
-  hoverScale: 1.2,
+  hoverHeight: 0.5,
   dist1X: 30,
   dist2X: 16,
   overlapX: -8,
-  outerMarginTop: 30,
-  animDuration: 0.35,
 };
+
+/**
+ * 从归一化 hoverHeight (0~1) 派生物理属性：
+ * h=0 时与非 hover 状态完全一致（y=0, scale=1, 默认阴影）
+ * h=1 时最大悬浮效果
+ */
+const REST_SHADOW = "0 2px 8px rgba(0,0,0,0.04)";
+
+function deriveHoverPhysics(h: number) {
+  if (h === 0) return { y: 0, scale: 1, shadow: REST_SHADOW };
+  const y = -h * 40;
+  const scale = 1 + h * 0.4;
+  // 阴影从 rest 状态线性过渡到最大悬浮状态
+  const shadowBlur1 = 8 + h * 152;       // 8 → 160
+  const shadowY1 = 2 + h * 78;           // 2 → 80
+  const shadowAlpha1 = 0.04 + h * 0.18;  // 0.04 → 0.22
+  const shadowBlur2 = 8 + h * 56;        // 8 → 64
+  const shadowY2 = 2 + h * 30;           // 2 → 32
+  const shadowAlpha2 = 0.04 + h * 0.10;  // 0.04 → 0.14
+  const shadow = `0 ${shadowY1.toFixed(0)}px ${shadowBlur1.toFixed(0)}px rgba(0,0,0,${shadowAlpha1.toFixed(2)}), 0 ${shadowY2.toFixed(0)}px ${shadowBlur2.toFixed(0)}px rgba(0,0,0,${shadowAlpha2.toFixed(2)})`;
+  return { y, scale, shadow };
+}
 
 interface AgentCardProps {
   /** 英文名 */
@@ -664,23 +680,28 @@ export function AgentFanCards({
   onSkillClick,
   onSummon,
   config = DEFAULT_FAN_CONFIG,
+  isEditorHovered = false,
 }: {
   onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
   onSummon?: (agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
   config?: FanCardsConfig;
+  isEditorHovered?: boolean;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
+  // 当编辑器被 hover 时，自动浮起第二张卡片
+  const activeHoveredIdx = isEditorHovered ? 1 : hoveredIdx;
+
   const getOffset = (i: number) => {
-    if (hoveredIdx === null) return { x: 0 };
-    if (i === hoveredIdx) return { x: 0 };
-    const dist = Math.abs(i - hoveredIdx);
+    if (activeHoveredIdx === null) return { x: 0 };
+    if (i === activeHoveredIdx) return { x: 0 };
+    const dist = Math.abs(i - activeHoveredIdx);
     if (dist === 1) {
-      const dir = i < hoveredIdx ? -1 : 1;
+      const dir = i < activeHoveredIdx ? -1 : 1;
       return { x: dir * config.dist1X };
     }
     if (dist === 2) {
-      const dir = i < hoveredIdx ? -1 : 1;
+      const dir = i < activeHoveredIdx ? -1 : 1;
       return { x: dir * config.dist2X };
     }
     return { x: 0 };
@@ -703,32 +724,33 @@ export function AgentFanCards({
         position: "relative",
       }}>
         {FAN_CARDS.map(({ data, rotate }, i) => {
-          const isHovered = hoveredIdx === i;
+          const isHovered = activeHoveredIdx === i;
           const { x } = getOffset(i);
+          const hover = deriveHoverPhysics(config.hoverHeight);
           return (
             <motion.div
               key={data.name}
               animate={{
                 x,
-                y: isHovered ? config.hoverY : 0,
+                y: isHovered ? hover.y : 0,
                 rotate,
-                scale: isHovered ? config.hoverScale : 1,
+                scale: isHovered ? hover.scale : 1,
               }}
-              transition={{ duration: config.animDuration, ease: EASE }}
-              onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
+              transition={{ duration: 0.35, ease: EASE }}
+              onMouseEnter={() => !isEditorHovered && setHoveredIdx(i)}
+              onMouseLeave={() => !isEditorHovered && setHoveredIdx(null)}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
-                marginTop: (i === 0 || i === 3) ? config.outerMarginTop : 0,
+                marginTop: (i === 0 || i === 3) ? 30 : 0,
                 transformOrigin: "center bottom",
                 zIndex: isHovered ? 20 : 1,
                 position: "relative",
                 boxShadow: isHovered
-                  ? "0 80px 160px rgba(0,0,0,0.22), 0 32px 64px rgba(0,0,0,0.14)"
-                  : "0 2px 8px rgba(0,0,0,0.04)",
+                  ? hover.shadow
+                  : REST_SHADOW,
                 borderRadius: 24,
-                transition: `box-shadow ${config.animDuration}s cubic-bezier(0.4,0,0.2,1)`,
+                transition: "box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)",
               }}
             >
               <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
