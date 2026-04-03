@@ -108,6 +108,7 @@ export default function Home() {
   const [revealStep, setRevealStep] = useState(0);
   // 卡片参数配置
   const [fanConfig, setFanConfig] = useState<FanCardsConfig>(DEFAULT_FAN_CONFIG);
+  const [isEditorHovered, setIsEditorHovered] = useState(false);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -291,7 +292,6 @@ export default function Home() {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: C.rightBg,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -374,11 +374,16 @@ export default function Home() {
           scrollbarWidth: "none",
           transition: "justify-content 0.3s",
           position: "relative",
+          backgroundColor: C.rightBg,
         }}>
           {/* 参数编辑器 - 仅在 welcome 阶段显示 */}
           <AnimatePresence>
             {chatPhase === "welcome" && (
-              <FanCardEditor config={fanConfig} onChange={setFanConfig} />
+              <FanCardEditor
+                config={fanConfig}
+                onChange={setFanConfig}
+                onHoverChange={setIsEditorHovered}
+              />
             )}
           </AnimatePresence>
           {/* 内容宽度容器 880px */}
@@ -432,7 +437,7 @@ export default function Home() {
                           }}>专家团随时待命</span>
                         </div>
                         <div style={{ marginTop: -20 }}>
-                          <AgentFanCards config={fanConfig} onSkillClick={handleSkillClick} onSummon={handleSummon} />
+                          <AgentFanCards config={fanConfig} isEditorHovered={isEditorHovered} onSkillClick={handleSkillClick} onSummon={handleSummon} />
                         </div>
                       </motion.div>
                     )}

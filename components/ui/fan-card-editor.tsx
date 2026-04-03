@@ -1,8 +1,17 @@
+/**
+ * ⚠️ 删除指南（耦合性：零，可随时安全删除）
+ *
+ * 1. 删除本文件：components/ui/fan-card-editor.tsx
+ * 2. app/page.tsx 中移除：
+ *    - import FanCardEditor from "@/components/ui/fan-card-editor"
+ *    - <FanCardEditor config={fanConfig} onChange={setFanConfig} onHoverChange={setIsEditorHovered} />
+ *    - 相关 state（如仅此处使用）：fanConfig / setFanConfig / isEditorHovered / setIsEditorHovered
+ */
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { ChevronDown, Copy, Check } from "lucide-react";
+import React, { useState, useId, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Copy, Check, RotateCcw, Settings } from "lucide-react";
 import { FanCardsConfig, DEFAULT_FAN_CONFIG } from "@/components/ui/agent-card";
 
 // ── Design tokens ──────────────────────────────────────────────────
@@ -13,48 +22,63 @@ const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 interface ParameterDef {
   key: keyof FanCardsConfig;
   label: string;
-  category: "动效" | "布局";
   min: number;
   max: number;
   step: number;
 }
 
 const PARAMETERS: ParameterDef[] = [
-  { key: "hoverY", label: "悬浮高度", category: "动效", min: -40, max: 0, step: 1 },
-  { key: "hoverScale", label: "悬浮放大", category: "动效", min: 0.8, max: 1.5, step: 0.05 },
-  { key: "animDuration", label: "动画时长", category: "动效", min: 0.1, max: 0.8, step: 0.05 },
-  { key: "dist1X", label: "近邻推开", category: "布局", min: 0, max: 60, step: 1 },
-  { key: "dist2X", label: "次邻推开", category: "布局", min: 0, max: 40, step: 1 },
-  { key: "overlapX", label: "卡片重叠", category: "布局", min: -30, max: 0, step: 1 },
-  { key: "outerMarginTop", label: "外侧下沉", category: "布局", min: 0, max: 60, step: 1 },
+  { key: "hoverHeight", label: "悬浮高度", min: 0, max: 2, step: 0.05 },
+  { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1 },
+  { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1 },
+  { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
 ];
 
 interface FanCardEditorProps {
   config: FanCardsConfig;
   onChange: (config: FanCardsConfig) => void;
-  hidden?: boolean;
+  onHoverChange?: (isHovered: boolean) => void;
 }
 
-export default function FanCardEditor({ config, onChange, hidden = false }: FanCardEditorProps) {
+export default function FanCardEditor({ config, onChange, onHoverChange }: FanCardEditorProps) {
   const [isCodeExpanded, setIsCodeExpanded] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const sliderId = useId();
+
+  const handleCollapse = useCallback(() => {
+    // 关键：收起时立即释放卡片 hover 状态
+    onHoverChange?.(false);
+    setIsCollapsed(true);
+  }, [onHoverChange]);
+
+  const handleExpand = useCallback(() => {
+    setIsCollapsed(false);
+  }, []);
 
   const handleSliderChange = (key: keyof FanCardsConfig, value: number) => {
-    onChange({
-      ...config,
-      [key]: value,
-    });
+    onChange({ ...config, [key]: value });
   };
 
+  const handleResetParameter = (key: keyof FanCardsConfig) => {
+    onChange({ ...config, [key]: DEFAULT_FAN_CONFIG[key] });
+  };
+
+  const handleMouseEnter = () => onHoverChange?.(true);
+  const handleMouseLeave = () => onHoverChange?.(false);
+
   const generateCode = () => {
-    return `const DEFAULT_FAN_CONFIG = {
-  hoverY: ${config.hoverY},
-  hoverScale: ${config.hoverScale},
-  dist1X: ${config.dist1X},
-  dist2X: ${config.dist2X},
-  overlapX: ${config.overlapX},
-  outerMarginTop: ${config.outerMarginTop},
-  animDuration: ${config.animDuration},
+    // 精确匹配 agent-card.tsx 中 L49-54 的 DEFAULT_FAN_CONFIG 格式
+    // 复制后直接替换该代码块即可生效
+    const fmt = (key: keyof FanCardsConfig) => {
+      const p = PARAMETERS.find(p => p.key === key)!;
+      return p.step < 1 ? config[key].toFixed(2) : String(config[key]);
+    };
+    return `export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
+  hoverHeight: ${fmt("hoverHeight")},
+  dist1X: ${fmt("dist1X")},
+  dist2X: ${fmt("dist2X")},
+  overlapX: ${fmt("overlapX")},
 };`;
   };
 
@@ -64,236 +88,388 @@ export default function FanCardEditor({ config, onChange, hidden = false }: FanC
     setTimeout(() => setCopyFeedback(false), 2000);
   };
 
-  if (hidden) return null;
+  const getPercent = (param: ParameterDef) =>
+    ((config[param.key] - param.min) / (param.max - param.min)) * 100;
 
-  const groupedParams = {
-    "动效": PARAMETERS.filter(p => p.category === "动效"),
-    "布局": PARAMETERS.filter(p => p.category === "布局"),
-  };
+  const cls = `fan-slider-${sliderId.replace(/:/g, "")}`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.3, ease: EASE }}
-      style={{
-        position: "absolute",
-        top: 20,
-        right: 20,
-        width: 232,
-        borderRadius: 12,
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(20px) saturate(60%)",
-        WebkitBackdropFilter: "blur(20px) saturate(60%)",
-        border: "1px solid rgba(0,0,0,0.08)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
-        overflow: "hidden",
-        fontFamily: FONT,
-        zIndex: 10,
-      }}
-    >
-      {/* 头部 */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "12px 12px",
-        borderBottom: "1px solid rgba(0,0,0,0.06)",
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}>
-          <span style={{
-            fontSize: 14,
-            fontWeight: 500,
-            color: "rgba(0,0,0,0.9)",
-          }}>
-            ⚙ 卡片参数
-          </span>
-        </div>
-        <button style={{
-          width: 20,
-          height: 20,
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 0,
-          color: "rgba(0,0,0,0.45)",
-          transition: "color 100ms",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.7)")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.45)")}
-        >
-          ×
-        </button>
-      </div>
+    <>
+      {/* 注入 range slider 伪元素样式（始终存在，避免展开时闪烁） */}
+      <style>{`
+        .${cls} {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 4px;
+          margin: 6px 0;
+          padding: 0;
+          border: none;
+          border-radius: 2px;
+          outline: none;
+          cursor: pointer;
+          vertical-align: middle;
+        }
+        .${cls}::-webkit-slider-runnable-track {
+          height: 4px;
+          border-radius: 2px;
+          background: transparent;
+        }
+        .${cls}::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 14px;
+          height: 14px;
+          margin-top: -5px;
+          border-radius: 50%;
+          background: #fff;
+          border: 2px solid rgba(0,0,0,0.22);
+          box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+          cursor: pointer;
+          transition: border-color 120ms, box-shadow 120ms, transform 120ms;
+        }
+        .${cls}::-webkit-slider-thumb:hover {
+          border-color: rgba(0,0,0,0.4);
+          box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+          transform: scale(1.1);
+        }
+        .${cls}::-webkit-slider-thumb:active {
+          border-color: rgba(0,0,0,0.5);
+          transform: scale(0.95);
+        }
+        .${cls}::-moz-range-track {
+          height: 4px;
+          border: none;
+          border-radius: 2px;
+          background: #E6E9EF;
+        }
+        .${cls}::-moz-range-progress {
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(0,0,0,0.22);
+        }
+        .${cls}::-moz-range-thumb {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #fff;
+          border: 2px solid rgba(0,0,0,0.22);
+          box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+          cursor: pointer;
+        }
+      `}</style>
 
-      {/* 内容区 */}
-      <div style={{ padding: "12px" }}>
-        {/* 各分类参数 */}
-        {(Object.entries(groupedParams) as Array<[string, ParameterDef[]]>).map(([category, params]) => (
-          <div key={category} style={{ marginBottom: 12 }}>
-            {/* 分类标题 */}
-            <div style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "rgba(0,0,0,0.45)",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              marginBottom: 6,
-            }}>
-              {category}
-            </div>
-
-            {/* 参数列表 */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {params.map((param) => (
-                <div key={param.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {/* 标签 + 值 */}
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}>
-                    <label style={{
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: "rgba(0,0,0,0.7)",
-                    }}>
-                      {param.label}
-                    </label>
-                    <span style={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      color: "rgba(0,0,0,0.5)",
-                      fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', sans-serif",
-                      minWidth: 32,
-                      textAlign: "right",
-                    }}>
-                      {config[param.key].toFixed(param.step < 1 ? 2 : 0)}
-                    </span>
-                  </div>
-
-                  {/* 滑块 */}
-                  <input
-                    type="range"
-                    min={param.min}
-                    max={param.max}
-                    step={param.step}
-                    value={config[param.key]}
-                    onChange={(e) => handleSliderChange(param.key, parseFloat(e.target.value))}
-                    style={{
-                      width: "100%",
-                      height: 4,
-                      borderRadius: 2,
-                      background: "linear-gradient(to right, #E6E9EF 0%, #E6E9EF calc((100% - var(--value, 0) * 100%)), rgba(0,0,0,0.2) calc((100% - var(--value, 0) * 100%)), rgba(0,0,0,0.2) 100%)",
-                      WebkitAppearance: "none",
-                      appearance: "none",
-                      cursor: "pointer",
-                      outlineOffset: 2,
-                      "--value": ((config[param.key] - param.min) / (param.max - param.min)).toString(),
-                    } as React.CSSProperties}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {category === "布局" && <div style={{ height: 1, background: "rgba(0,0,0,0.06)", margin: "8px 0" }} />}
-          </div>
-        ))}
-      </div>
-
-      {/* 代码区 - 可折叠 */}
-      <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-        <button
-          onClick={() => setIsCodeExpanded(!isCodeExpanded)}
-          style={{
-            width: "100%",
-            padding: "8px 12px",
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: 12,
-            fontWeight: 500,
-            color: "rgba(0,0,0,0.6)",
-            transition: "background 100ms",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.03)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <span>▶ 代码（点击展开）</span>
-        </button>
-
-        {/* 代码块 - 展开时显示 */}
-        {isCodeExpanded && (
-          <motion.div
-            initial={{ opacity: 0, maxHeight: 0 }}
-            animate={{ opacity: 1, maxHeight: 500 }}
-            exit={{ opacity: 0, maxHeight: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ overflow: "hidden" }}
+      <AnimatePresence mode="wait">
+        {isCollapsed ? (
+          /* ── 收起态：右下角黑色小圆球 ── */
+          <motion.button
+            key="collapsed-ball"
+            initial={{
+              opacity: 0,
+              scale: 0.2,
+              y: 0,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+            }}
+            exit={{
+              // 打开：圆球飞向右上角，放大，变白，消失
+              opacity: 0,
+              scale: 2.5,
+              y: "-65vh",
+              backgroundColor: "rgba(255,255,255,0.72)",
+            }}
+            transition={{
+              duration: 0.45,
+              ease: [0.2, 0.8, 0.3, 1],
+            }}
+            onClick={handleExpand}
+            style={{
+              position: "absolute",
+              bottom: 20,
+              right: 20,
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              border: "none",
+              background: "rgba(0,0,0,0.82)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "rgba(255,255,255,0.85)",
+              zIndex: 10,
+              transition: "box-shadow 150ms, transform 150ms",
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.32)";
+              e.currentTarget.style.transform += " scale(1.08)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.2)";
+              e.currentTarget.style.transform = e.currentTarget.style.transform.replace(/ scale\(1\.08\)/, "");
+            }}
+            title="打开卡片参数编辑器"
           >
+            <Settings size={15} strokeWidth={2.2} />
+          </motion.button>
+        ) : (
+          /* ── 展开态：完整面板 ── */
+          <motion.div
+            key="expanded-panel"
+            initial={{ opacity: 0, scale: 0.6, y: 40 }}
+            animate={{ opacity: 1, y: 0, scale: 1, backgroundColor: "rgba(255,255,255,0.72)" }}
+            exit={{
+              // 收起：面板飞向右下角，缩成圆，变黑
+              opacity: 0,
+              scale: 0.12,
+              y: "68vh",
+              x: 85,
+              borderRadius: 200,
+              backgroundColor: "rgba(0,0,0,0.82)",
+            }}
+            transition={{
+              duration: 0.55,
+              ease: [0.4, 0, 0.65, 0.1],
+            }}
+            drag
+            dragElastic={0.15}
+            dragMomentum={false}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              width: 232,
+              borderRadius: 12,
+              backgroundColor: "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(20px) saturate(60%)",
+              WebkitBackdropFilter: "blur(20px) saturate(60%)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+              overflow: "hidden",
+              fontFamily: FONT,
+              zIndex: 10,
+              cursor: "grab",
+            }}
+          >
+            {/* ── 头部 ── */}
             <div style={{
-              padding: "8px 12px",
-              backgroundColor: "rgba(0,0,0,0.02)",
-              borderTop: "1px solid rgba(0,0,0,0.06)",
-              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 12px",
+              borderBottom: "1px solid rgba(0,0,0,0.06)",
             }}>
-              {/* 代码内容 */}
-              <pre style={{
-                margin: 0,
-                fontSize: 10,
-                fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
-                color: "rgba(0,0,0,0.7)",
-                lineHeight: "1.4",
-                overflowX: "auto",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-              }}>
-                {generateCode()}
-              </pre>
-
-              {/* 复制按钮 */}
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <Settings size={13} color="rgba(0,0,0,0.45)" strokeWidth={2} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.85)" }}>
+                  卡片参数
+                </span>
+              </div>
               <button
-                onClick={handleCopy}
+                onClick={handleCollapse}
                 style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  width: 28,
-                  height: 28,
+                  width: 20, height: 20,
+                  border: "none", background: "transparent",
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: 0, color: "rgba(0,0,0,0.35)",
+                  borderRadius: 4,
+                  transition: "color 100ms, background 100ms",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "rgba(0,0,0,0.7)";
+                  e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(0,0,0,0.35)";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* ── 参数区 ── */}
+            <div style={{ padding: "10px 12px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {PARAMETERS.map((param) => {
+                const pct = getPercent(param);
+                const isDefault = config[param.key] === DEFAULT_FAN_CONFIG[param.key];
+                return (
+                  <div key={param.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}>
+                      <label style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.65)", display: "flex", alignItems: "baseline", gap: 4 }}>
+                        {param.label}
+                        <span style={{ fontSize: 9, fontWeight: 400, color: "rgba(0,0,0,0.28)", fontFamily: "'Monaco', 'Menlo', monospace" }}>
+                          {param.key}
+                        </span>
+                      </label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
+                          fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', monospace",
+                          minWidth: 32,
+                          textAlign: "right",
+                          transition: "color 100ms",
+                        }}>
+                          {config[param.key].toFixed(param.step < 1 ? 2 : 0)}
+                        </span>
+                        {!isDefault && (
+                          <button
+                            onClick={() => handleResetParameter(param.key)}
+                            title="重置为默认值"
+                            style={{
+                              width: 18, height: 18,
+                              border: "none",
+                              background: "rgba(0,0,0,0.05)",
+                              borderRadius: 4,
+                              cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "rgba(0,0,0,0.4)",
+                              transition: "all 100ms",
+                              padding: 0, flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = "rgba(0,0,0,0.7)";
+                              e.currentTarget.style.background = "rgba(0,0,0,0.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = "rgba(0,0,0,0.4)";
+                              e.currentTarget.style.background = "rgba(0,0,0,0.05)";
+                            }}
+                          >
+                            <RotateCcw size={11} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <input
+                      type="range"
+                      className={cls}
+                      min={param.min}
+                      max={param.max}
+                      step={param.step}
+                      value={config[param.key]}
+                      onChange={(e) => handleSliderChange(param.key, parseFloat(e.target.value))}
+                      style={{
+                        background: `linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.22) ${pct}%, #E6E9EF ${pct}%, #E6E9EF 100%)`,
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── 代码区 — 可折叠 ── */}
+            <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+              <button
+                onClick={() => setIsCodeExpanded(!isCodeExpanded)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
                   border: "none",
-                  background: copyFeedback ? "rgba(34, 197, 94, 0.1)" : "rgba(0,0,0,0.08)",
-                  borderRadius: 6,
+                  background: "transparent",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  color: copyFeedback ? "#22C55E" : "rgba(0,0,0,0.45)",
-                  transition: "all 100ms",
+                  gap: 4,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "rgba(0,0,0,0.5)",
+                  fontFamily: FONT,
+                  transition: "background 100ms",
                 }}
-                onMouseEnter={(e) => !copyFeedback && (e.currentTarget.style.background = "rgba(0,0,0,0.12)")}
-                onMouseLeave={(e) => !copyFeedback && (e.currentTarget.style.background = "rgba(0,0,0,0.08)")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.03)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                {copyFeedback ? (
-                  <Check size={14} />
-                ) : (
-                  <Copy size={14} />
-                )}
+                <span style={{
+                  display: "inline-block",
+                  transition: "transform 200ms",
+                  transform: isCodeExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                  fontSize: 10,
+                }}>
+                  ▶
+                </span>
+                <span>代码</span>
               </button>
+
+              <AnimatePresence>
+                {isCodeExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: EASE }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div style={{
+                      padding: "8px 12px 10px",
+                      backgroundColor: "rgba(0,0,0,0.025)",
+                      borderTop: "1px solid rgba(0,0,0,0.04)",
+                      position: "relative",
+                    }}>
+                      <div style={{
+                        fontSize: 9,
+                        fontFamily: "'Monaco', 'Menlo', monospace",
+                        color: "rgba(0,0,0,0.3)",
+                        marginBottom: 6,
+                        lineHeight: 1,
+                      }}>
+                        agent-card.tsx → DEFAULT_FAN_CONFIG
+                      </div>
+                      <pre style={{
+                        margin: 0,
+                        fontSize: 10,
+                        fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
+                        color: "rgba(0,0,0,0.65)",
+                        lineHeight: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        paddingRight: 32,
+                      }}>
+                        {generateCode()}
+                      </pre>
+
+                      <button
+                        onClick={handleCopy}
+                        title={copyFeedback ? "已复制" : "复制代码"}
+                        style={{
+                          position: "absolute",
+                          top: 8, right: 8,
+                          width: 26, height: 26,
+                          border: "none",
+                          background: copyFeedback ? "rgba(34,197,94,0.1)" : "rgba(0,0,0,0.06)",
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: copyFeedback ? "#22C55E" : "rgba(0,0,0,0.4)",
+                          transition: "all 150ms",
+                        }}
+                        onMouseEnter={(e) => !copyFeedback && (e.currentTarget.style.background = "rgba(0,0,0,0.1)")}
+                        onMouseLeave={(e) => !copyFeedback && (e.currentTarget.style.background = copyFeedback ? "rgba(34,197,94,0.1)" : "rgba(0,0,0,0.06)")}
+                      >
+                        {copyFeedback ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
-      </div>
-    </motion.div>
+      </AnimatePresence>
+    </>
   );
 }
