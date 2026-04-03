@@ -36,7 +36,7 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
   {
     label: "扇形布局",
     params: [
-      { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
+      { key: "overlapX", label: "卡片重叠", min: -30, max: 20, step: 1 },
     ],
   },
   {
@@ -190,7 +190,7 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               fontSize: 11,
               fontWeight: 500,
               color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
-              fontFamily: "var(--font-pixelify-sans), 'Pixelify Sans', monospace",
+              fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
               minWidth: 32,
               textAlign: "right",
               transition: "color 100ms",
