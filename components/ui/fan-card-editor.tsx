@@ -113,9 +113,9 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
-    // 默认只展开第一组
+    // 默认全部收起
     const init: Record<string, boolean> = {};
-    PARAMETER_GROUPS.forEach((g, i) => { init[g.label] = i !== 0; });
+    PARAMETER_GROUPS.forEach((g) => { init[g.label] = true; });
     return init;
   });
   const sliderId = useId();
