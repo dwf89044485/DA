@@ -41,11 +41,16 @@ interface StatItem {
 
 export interface FanCardsConfig {
   // ── 扇形布局 ──
-  hoverHeight: number;       // 悬浮高度 0~1，驱动 Y偏移/放大/阴影
+  overlapX: number;          // 卡片重叠  默认 -8
+  // ── 扇形角度 ──
+  rotateOuter: number;       // 外侧卡旋转（卡1取负，卡4取正）
+  rotateInner: number;       // 内侧卡旋转（卡2取负，卡3取正）
+  outerCardOffset: number;   // 外侧卡下沉
+  // ── Hover 推开 ──
   dist1X: number;            // 近邻推开  默认 30
   dist2X: number;            // 次邻推开  默认 16
-  overlapX: number;          // 卡片重叠  默认 -8
   // ── 悬浮物理 ──
+  hoverHeight: number;       // 悬浮高度 0~1，驱动 Y偏移/放大/阴影
   yFactor: number;           // Y偏移系数（-h * yFactor）
   scaleFactor: number;       // 放大系数（1 + h * scaleFactor）
   // ── Hover 投影 ──
@@ -59,23 +64,28 @@ export interface FanCardsConfig {
   restShadowY: number;       // 静态投影Y
   restShadowBlur: number;    // 静态投影模糊
   restShadowAlpha: number;   // 静态投影透明度
-  // ── 扇形角度 ──
-  rotate1: number;           // 卡1旋转
-  rotate2: number;           // 卡2旋转
-  rotate3: number;           // 卡3旋转
-  rotate4: number;           // 卡4旋转
-  outerCardOffset: number;   // 外侧卡下沉
+  // ── 信息区毛玻璃 ──
+  infoFromOpacity: number;    // 渐变起始透明度（顶）
+  infoToOpacity: number;      // 渐变结束透明度（底）
+  infoBlur: number;           // 高斯模糊 px
+  infoSaturate: number;       // 饱和度百分比
   // ── 动画 ──
-  transitionDuration: number; // 动画时长（秒）
+  fanTransitionDuration: number;   // 推开动画时长（秒）
+  hoverTransitionDuration: number; // 浮起动画时长（秒）
 }
 
 export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   // 扇形布局
-  hoverHeight: 0.5,
+  overlapX: -8,
+  // 扇形角度
+  rotateOuter: 10,
+  rotateInner: 3,
+  outerCardOffset: 30,
+  // Hover 推开
   dist1X: 30,
   dist2X: 16,
-  overlapX: -8,
   // 悬浮物理
+  hoverHeight: 0.5,
   yFactor: 40,
   scaleFactor: 0.4,
   // Hover 投影
@@ -89,14 +99,14 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   restShadowY: 2,
   restShadowBlur: 8,
   restShadowAlpha: 0.04,
-  // 扇形角度
-  rotate1: -10,
-  rotate2: -3,
-  rotate3: 3,
-  rotate4: 10,
-  outerCardOffset: 30,
+  // 信息区毛玻璃
+  infoFromOpacity: 0.9,
+  infoToOpacity: 0.8,
+  infoBlur: 20,
+  infoSaturate: 180,
   // 动画
-  transitionDuration: 0.35,
+  fanTransitionDuration: 0.35,
+  hoverTransitionDuration: 0.35,
 };
 
 /**
@@ -155,6 +165,8 @@ interface AgentCardProps {
   onSummon?: () => void;
   /** 受控 hover 状态：外部控制时优先使用 */
   isHovered?: boolean;
+  /** 扇形配置（信息区毛玻璃参数从这里读取） */
+  fanConfig?: FanCardsConfig;
 }
 
 // ── 小箭头图标 ──────────────────────────────────────────────────
@@ -210,6 +222,7 @@ export default function AgentCard({
   onSkillClick,
   onSummon,
   isHovered: controlledHover,
+  fanConfig,
 }: AgentCardProps) {
   const [internalHover, setInternalHover] = useState(false);
 
@@ -275,6 +288,7 @@ export default function AgentCard({
             position: "absolute",
             top: 0,
             left: 0,
+            opacity: 0.7,
           }}
         />
       )}
@@ -299,8 +313,8 @@ export default function AgentCard({
       <motion.div
         initial={false}
         animate={{
-          y: hovered ? 0 : CARD_HEIGHT - 156,
-          paddingTop: hovered ? 24 : 14,
+          y: hovered ? 0 : CARD_HEIGHT - 158,
+          paddingTop: hovered ? 24 : 16,
         }}
         transition={{ duration: DUR.macro, ease: EASE }}
         style={{
@@ -310,9 +324,9 @@ export default function AgentCard({
           right: 0,
           bottom: 0,
           paddingBottom: 24,
-          background: "rgba(255,255,255,0.76)",
-          backdropFilter: "blur(20px) saturate(60%)",
-          WebkitBackdropFilter: "blur(20px) saturate(60%)",
+          background: `linear-gradient(to bottom, rgba(255,255,255,${fanConfig?.infoFromOpacity ?? DEFAULT_FAN_CONFIG.infoFromOpacity}), rgba(255,255,255,${fanConfig?.infoToOpacity ?? DEFAULT_FAN_CONFIG.infoToOpacity}))`,
+          backdropFilter: `blur(${fanConfig?.infoBlur ?? DEFAULT_FAN_CONFIG.infoBlur}px) saturate(${fanConfig?.infoSaturate ?? DEFAULT_FAN_CONFIG.infoSaturate}%)`,
+          WebkitBackdropFilter: `blur(${fanConfig?.infoBlur ?? DEFAULT_FAN_CONFIG.infoBlur}px) saturate(${fanConfig?.infoSaturate ?? DEFAULT_FAN_CONFIG.infoSaturate}%)`,
           display: "flex",
           flexDirection: "column",
           paddingLeft: 24,
@@ -320,7 +334,7 @@ export default function AgentCard({
         }}
       >
         {/* ── 顶部：名字区 ─────────────────────────────── */}
-        <div style={{ flexShrink: 0, marginBottom: 4 }}>
+        <div style={{ flexShrink: 0, marginBottom: 8 }}>
           {/* 英文名 */}
           <p
             style={{
@@ -768,7 +782,7 @@ export function AgentFanCards({
         position: "relative",
       }}>
         {FAN_CARD_DATA.map((data, i) => {
-          const rotates = [config.rotate1, config.rotate2, config.rotate3, config.rotate4];
+          const rotates = [-config.rotateOuter, -config.rotateInner, config.rotateInner, config.rotateOuter];
           const rotate = rotates[i] ?? 0;
           const isHovered = activeHoveredIdx === i;
           const { x } = getOffset(i);
@@ -783,7 +797,12 @@ export function AgentFanCards({
                 rotate,
                 scale: isHovered ? hover.scale : 1,
               }}
-              transition={{ duration: config.transitionDuration, ease: EASE }}
+              transition={{
+                x: { duration: config.fanTransitionDuration, ease: EASE },
+                rotate: { duration: config.fanTransitionDuration, ease: EASE },
+                y: { duration: config.hoverTransitionDuration, ease: EASE },
+                scale: { duration: config.hoverTransitionDuration, ease: EASE },
+              }}
               onMouseEnter={() => !isEditorHovered && setHoveredIdx(i)}
               onMouseLeave={() => !isEditorHovered && setHoveredIdx(null)}
               style={{
@@ -797,10 +816,10 @@ export function AgentFanCards({
                   ? hover.shadow
                   : rest,
                 borderRadius: 24,
-                transition: `box-shadow ${config.transitionDuration}s cubic-bezier(0.4,0,0.2,1)`,
+                transition: `box-shadow ${config.hoverTransitionDuration}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
-              <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
+              <AgentCard {...data} isHovered={isHovered} fanConfig={config} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
             </motion.div>
           );
         })}

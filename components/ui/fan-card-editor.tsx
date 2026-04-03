@@ -36,15 +36,28 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
   {
     label: "扇形布局",
     params: [
-      { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05 },
+      { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
+    ],
+  },
+  {
+    label: "扇形角度",
+    params: [
+      { key: "rotateOuter", label: "外侧旋转", min: 0, max: 30, step: 1 },
+      { key: "rotateInner", label: "内侧旋转", min: 0, max: 15, step: 1 },
+      { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1 },
+    ],
+  },
+  {
+    label: "Hover 推开",
+    params: [
       { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1 },
       { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1 },
-      { key: "overlapX", label: "卡片重叠", min: -30, max: 0, step: 1 },
     ],
   },
   {
     label: "悬浮物理",
     params: [
+      { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05 },
       { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1 },
       { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02 },
     ],
@@ -69,19 +82,19 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
     ],
   },
   {
-    label: "扇形角度",
+    label: "信息区毛玻璃",
     params: [
-      { key: "rotate1", label: "卡1旋转", min: -30, max: 0, step: 1 },
-      { key: "rotate2", label: "卡2旋转", min: -15, max: 0, step: 1 },
-      { key: "rotate3", label: "卡3旋转", min: 0, max: 15, step: 1 },
-      { key: "rotate4", label: "卡4旋转", min: 0, max: 30, step: 1 },
-      { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1 },
+      { key: "infoFromOpacity", label: "渐变起始透明度", min: 0, max: 1, step: 0.05 },
+      { key: "infoToOpacity", label: "渐变结束透明度", min: 0, max: 1, step: 0.05 },
+      { key: "infoBlur", label: "高斯模糊", min: 0, max: 60, step: 1 },
+      { key: "infoSaturate", label: "饱和度", min: 0, max: 300, step: 5 },
     ],
   },
   {
     label: "动画",
     params: [
-      { key: "transitionDuration", label: "动画时长", min: 0.1, max: 1.0, step: 0.05 },
+      { key: "fanTransitionDuration", label: "推开时长", min: 0.1, max: 1.0, step: 0.05 },
+      { key: "hoverTransitionDuration", label: "浮起时长", min: 0.1, max: 1.0, step: 0.05 },
     ],
   },
 ];

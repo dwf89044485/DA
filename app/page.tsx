@@ -309,6 +309,7 @@ export default function Home() {
           justifyContent: "flex-end",
           padding: "0 20px",
           position: "relative",
+          backgroundColor: C.rightBg,
         }}>
           <AnimatePresence mode="wait">
             {chatPhase === "welcome" ? (
