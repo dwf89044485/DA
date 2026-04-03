@@ -179,6 +179,24 @@ npx agentation-mcp doctor
 
 ---
 
+## Git 工作流（本项目专属规则，优先级高于 Skill routing）
+
+本项目是 **solo 开发 + main 分支直推**，无 PR 流程，无测试套件。
+
+**「提交」「推送」「提交推送」「commit」「push」等指令，直接执行以下三步，禁止调用 `/ship` 技能：**
+
+```bash
+git add <changed-files>
+git commit -m "<message>"
+git push origin main
+```
+
+- 不走 `/ship` 流程（无需 PR、无需测试、无需覆盖率审计）
+- commit message 用中文或英文均可，语义清晰即可
+- 只 add 本次涉及的文件，不 `git add -A`
+
+---
+
 ## Skill routing
 
 When the user's request matches an available skill, ALWAYS invoke it using the Skill
@@ -188,7 +206,7 @@ The skill has specialized workflows that produce better results than ad-hoc answ
 Key routing rules:
 - Product ideas, "is this worth building", brainstorming → invoke office-hours
 - Bugs, errors, "why is this broken", 500 errors → invoke investigate
-- Ship, deploy, push, create PR → invoke ship
+- **Ship, deploy, push, create PR → 本项目不适用，见上方「Git 工作流」**
 - QA, test the site, find bugs → invoke qa
 - Code review, check my diff → invoke review
 - Update docs after shipping → invoke document-release
