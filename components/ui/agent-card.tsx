@@ -76,37 +76,37 @@ export interface FanCardsConfig {
 
 export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   // 扇形布局
-  overlapX: -8,
+  overlapX: -20,
   // 扇形角度
-  rotateOuter: 10,
-  rotateInner: 3,
-  outerCardOffset: 30,
+  rotateOuter: 11,
+  rotateInner: 4,
+  outerCardOffset: 38,
   // Hover 推开
-  dist1X: 30,
-  dist2X: 16,
+  dist1X: 40,
+  dist2X: 24,
   // 悬浮物理
-  hoverHeight: 0.5,
+  hoverHeight: 0.30,
   yFactor: 40,
-  scaleFactor: 0.4,
+  scaleFactor: 0.30,
   // Hover 投影
-  shadowBlur1Range: 152,
-  shadowY1Range: 78,
-  shadowAlpha1Range: 0.18,
-  shadowBlur2Range: 56,
-  shadowY2Range: 30,
-  shadowAlpha2Range: 0.10,
+  shadowBlur1Range: 64,
+  shadowY1Range: 40,
+  shadowAlpha1Range: 0.06,
+  shadowBlur2Range: 120,
+  shadowY2Range: 56,
+  shadowAlpha2Range: 0.02,
   // 静态投影
-  restShadowY: 2,
+  restShadowY: 3,
   restShadowBlur: 8,
-  restShadowAlpha: 0.04,
+  restShadowAlpha: 0.03,
   // 信息区毛玻璃
-  infoFromOpacity: 0.9,
-  infoToOpacity: 0.8,
+  infoFromOpacity: 0.90,
+  infoToOpacity: 0.80,
   infoBlur: 20,
   infoSaturate: 180,
   // 动画
-  fanTransitionDuration: 0.35,
-  hoverTransitionDuration: 0.35,
+  fanTransitionDuration: 0.60,
+  hoverTransitionDuration: 0.30,
 };
 
 /**
