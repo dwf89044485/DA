@@ -4,7 +4,8 @@ import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Sidebar from "@/components/ui/sidebar";
 import ClaudeChatInput, { type ChatInputHandle, type SkillChip } from "@/components/ui/claude-style-chat-input";
-import { AgentFanCards } from "@/components/ui/agent-card";
+import { AgentFanCards, type FanCardsConfig, DEFAULT_FAN_CONFIG } from "@/components/ui/agent-card";
+import FanCardEditor from "@/components/ui/fan-card-editor";
 import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
 import StudioView from "@/components/ui/studio-view";
 import AiRunningBubble from "@/components/ui/ai-running-bubble";
@@ -105,6 +106,8 @@ export default function Home() {
   const [userMessage, setUserMessage] = useState<string>("");
   // 对话流分步揭示：0=用户气泡, 1=思考摘要, 2=Plan卡片
   const [revealStep, setRevealStep] = useState(0);
+  // 卡片参数配置
+  const [fanConfig, setFanConfig] = useState<FanCardsConfig>(DEFAULT_FAN_CONFIG);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -370,7 +373,14 @@ export default function Home() {
           justifyContent: chatPhase === "welcome" ? "center" : "flex-start",
           scrollbarWidth: "none",
           transition: "justify-content 0.3s",
+          position: "relative",
         }}>
+          {/* 参数编辑器 - 仅在 welcome 阶段显示 */}
+          <AnimatePresence>
+            {chatPhase === "welcome" && (
+              <FanCardEditor config={fanConfig} onChange={setFanConfig} />
+            )}
+          </AnimatePresence>
           {/* 内容宽度容器 880px */}
           <div style={{
             width: "100%",
@@ -422,7 +432,7 @@ export default function Home() {
                           }}>专家团随时待命</span>
                         </div>
                         <div style={{ marginTop: -20 }}>
-                          <AgentFanCards onSkillClick={handleSkillClick} onSummon={handleSummon} />
+                          <AgentFanCards config={fanConfig} onSkillClick={handleSkillClick} onSummon={handleSummon} />
                         </div>
                       </motion.div>
                     )}

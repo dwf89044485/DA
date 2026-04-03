@@ -39,6 +39,26 @@ interface StatItem {
   label: string;
 }
 
+export interface FanCardsConfig {
+  hoverY: number;           // 悬浮上移  默认 -10
+  hoverScale: number;       // 悬浮放大  默认 1.2
+  dist1X: number;           // 近邻推开  默认 30
+  dist2X: number;           // 次邻推开  默认 16
+  overlapX: number;         // 卡片重叠  默认 -8
+  outerMarginTop: number;   // 外侧卡下沉 默认 30
+  animDuration: number;     // 动画时长  默认 0.35
+}
+
+export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
+  hoverY: -10,
+  hoverScale: 1.2,
+  dist1X: 30,
+  dist2X: 16,
+  overlapX: -8,
+  outerMarginTop: 30,
+  animDuration: 0.35,
+};
+
 interface AgentCardProps {
   /** 英文名 */
   name: string;
@@ -640,7 +660,15 @@ const FAN_CARDS = [
   { data: NOVA_DATA,  rotate: 10  },
 ];
 
-export function AgentFanCards({ onSkillClick, onSummon }: { onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void; onSummon?: (agent: { name: string; title: string; avatar: string; summonText?: string }) => void }) {
+export function AgentFanCards({
+  onSkillClick,
+  onSummon,
+  config = DEFAULT_FAN_CONFIG,
+}: {
+  onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
+  onSummon?: (agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
+  config?: FanCardsConfig;
+}) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const getOffset = (i: number) => {
@@ -649,11 +677,11 @@ export function AgentFanCards({ onSkillClick, onSummon }: { onSkillClick?: (labe
     const dist = Math.abs(i - hoveredIdx);
     if (dist === 1) {
       const dir = i < hoveredIdx ? -1 : 1;
-      return { x: dir * 30 };
+      return { x: dir * config.dist1X };
     }
     if (dist === 2) {
       const dir = i < hoveredIdx ? -1 : 1;
-      return { x: dir * 16 };
+      return { x: dir * config.dist2X };
     }
     return { x: 0 };
   };
@@ -682,17 +710,17 @@ export function AgentFanCards({ onSkillClick, onSummon }: { onSkillClick?: (labe
               key={data.name}
               animate={{
                 x,
-                y: isHovered ? -10 : 0,
+                y: isHovered ? config.hoverY : 0,
                 rotate,
-                scale: isHovered ? 1.2 : 1,
+                scale: isHovered ? config.hoverScale : 1,
               }}
-              transition={{ duration: DUR.macro, ease: EASE }}
+              transition={{ duration: config.animDuration, ease: EASE }}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
               style={{
                 flexShrink: 0,
-                marginLeft: i === 0 ? 0 : -8,
-                marginTop: (i === 0 || i === 3) ? 30 : 0,
+                marginLeft: i === 0 ? 0 : config.overlapX,
+                marginTop: (i === 0 || i === 3) ? config.outerMarginTop : 0,
                 transformOrigin: "center bottom",
                 zIndex: isHovered ? 20 : 1,
                 position: "relative",
@@ -700,7 +728,7 @@ export function AgentFanCards({ onSkillClick, onSummon }: { onSkillClick?: (labe
                   ? "0 80px 160px rgba(0,0,0,0.22), 0 32px 64px rgba(0,0,0,0.14)"
                   : "0 2px 8px rgba(0,0,0,0.04)",
                 borderRadius: 24,
-                transition: `box-shadow ${DUR.macro}s cubic-bezier(0.4,0,0.2,1)`,
+                transition: `box-shadow ${config.animDuration}s cubic-bezier(0.4,0,0.2,1)`,
               }}
             >
               <AgentCard {...data} isHovered={isHovered} onSkillClick={(label) => onSkillClick?.(label, { name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} onSummon={() => onSummon?.({ name: data.name, title: data.title, avatar: data.avatar, summonText: data.summonText })} />
