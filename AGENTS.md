@@ -132,6 +132,16 @@ wedata/
 
 ---
 
+## gstack
+
+所有网页浏览任务**必须**使用 gstack 的 `/browse` 技能，**禁止**使用 `mcp__claude-in-chrome__*` 系列工具。
+
+### 可用技能列表
+
+`/office-hours` · `/plan-ceo-review` · `/plan-eng-review` · `/plan-design-review` · `/design-consultation` · `/design-shotgun` · `/design-html` · `/review` · `/ship` · `/land-and-deploy` · `/canary` · `/benchmark` · `/browse` · `/connect-chrome` · `/qa` · `/qa-only` · `/design-review` · `/setup-browser-cookies` · `/setup-deploy` · `/retro` · `/investigate` · `/document-release` · `/codex` · `/cso` · `/autoplan` · `/careful` · `/freeze` · `/guard` · `/unfreeze` · `/gstack-upgrade` · `/learn`
+
+---
+
 ## Agentation（可视化反馈工具）
 
 项目已集成 [Agentation](https://www.agentation.com)，用于在浏览器中直接标注 UI 问题，Claude Code 通过 MCP 实时接收标注并修复。
@@ -165,3 +175,25 @@ npm run dev
 ```bash
 npx agentation-mcp doctor
 ```
+
+---
+
+## Skill routing
+
+When the user's request matches an available skill, ALWAYS invoke it using the Skill
+tool as your FIRST action. Do NOT answer directly, do NOT use other tools first.
+The skill has specialized workflows that produce better results than ad-hoc answers.
+
+Key routing rules:
+- Product ideas, "is this worth building", brainstorming → invoke office-hours
+- Bugs, errors, "why is this broken", 500 errors → invoke investigate
+- Ship, deploy, push, create PR → invoke ship
+- QA, test the site, find bugs → invoke qa
+- Code review, check my diff → invoke review
+- Update docs after shipping → invoke document-release
+- Weekly retro → invoke retro
+- Design system, brand → invoke design-consultation
+- Visual audit, design polish → invoke design-review
+- Architecture review → invoke plan-eng-review
+- Save progress, checkpoint, resume → invoke checkpoint
+- Code quality, health check → invoke health
