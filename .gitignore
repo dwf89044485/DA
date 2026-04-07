@@ -43,3 +43,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# local assistant artifacts
+/.agents/
+/.claude/skills/
+/.codebuddy/skills/
+/pic/
+/tasks/gstack-skills-guide.md
+/tasks/privacy-cleanup-todo.md
