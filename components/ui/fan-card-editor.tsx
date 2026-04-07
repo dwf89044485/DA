@@ -9,7 +9,7 @@
  */
 "use client";
 
-import React, { useState, useId, useCallback } from "react";
+import React, { useState, useRef, useId, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check, RotateCcw, Settings } from "lucide-react";
 import { FanCardsConfig, DEFAULT_FAN_CONFIG } from "@/components/ui/agent-card";
@@ -102,6 +102,129 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
 // 所有参数的扁平列表（用于代码生成和全量 reset 等）
 const ALL_PARAMETERS = PARAMETER_GROUPS.flatMap(g => g.params);
 
+// ── 子组件：+/- 步进按钮 ─────────────────────────────────────────
+function StepButton({ direction, onClick }: { direction: "minus" | "plus"; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={direction === "minus" ? "减少" : "增加"}
+      style={{
+        width: 16, height: 16,
+        border: "1px solid rgba(0,0,0,0.10)",
+        background: "rgba(0,0,0,0.03)",
+        borderRadius: 4,
+        cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 0, flexShrink: 0,
+        fontSize: 12,
+        lineHeight: 1,
+        fontWeight: 600,
+        color: "rgba(0,0,0,0.40)",
+        transition: "all 100ms",
+        fontFamily: "'Monaco', 'Menlo', monospace",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = "rgba(0,0,0,0.7)";
+        e.currentTarget.style.background = "rgba(0,0,0,0.08)";
+        e.currentTarget.style.borderColor = "rgba(0,0,0,0.18)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = "rgba(0,0,0,0.40)";
+        e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+        e.currentTarget.style.borderColor = "rgba(0,0,0,0.10)";
+      }}
+    >
+      {direction === "minus" ? "−" : "+"}
+    </button>
+  );
+}
+
+// ── 子组件：可编辑数值 ────────────────────────────────────────────
+function EditableValue({
+  value,
+  decimals,
+  isDefault,
+  onCommit,
+}: {
+  value: number;
+  decimals: number;
+  isDefault: boolean;
+  onCommit: (v: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEdit = () => {
+    setDraft(value.toFixed(decimals));
+    setEditing(true);
+    // 下一帧聚焦并全选
+    requestAnimationFrame(() => inputRef.current?.select());
+  };
+
+  const commit = () => {
+    setEditing(false);
+    const parsed = parseFloat(draft);
+    if (!isNaN(parsed)) onCommit(parsed);
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") setEditing(false);
+        }}
+        style={{
+          width: 38, height: 16,
+          fontSize: 11,
+          fontWeight: 500,
+          fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
+          textAlign: "center",
+          border: "1px solid rgba(0,0,0,0.18)",
+          borderRadius: 3,
+          outline: "none",
+          background: "#fff",
+          color: "rgba(0,0,0,0.7)",
+          padding: "0 2px",
+        }}
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={startEdit}
+      title="点击编辑"
+      style={{
+        fontSize: 11,
+        fontWeight: 500,
+        color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
+        fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
+        minWidth: 32,
+        textAlign: "center",
+        transition: "color 100ms",
+        cursor: "text",
+        borderRadius: 3,
+        padding: "0 2px",
+        userSelect: "none",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(0,0,0,0.05)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+      }}
+    >
+      {value.toFixed(decimals)}
+    </span>
+  );
+}
+
 interface FanCardEditorProps {
   config: FanCardsConfig;
   onChange: (config: FanCardsConfig) => void;
@@ -169,9 +292,24 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
 
   const cls = `fan-slider-${sliderId.replace(/:/g, "")}`;
 
+  // 是否有任何参数偏离默认值
+  const hasAnyChange = ALL_PARAMETERS.some(p => config[p.key] !== DEFAULT_FAN_CONFIG[p.key]);
+
+  const handleResetAll = () => {
+    onChange({ ...DEFAULT_FAN_CONFIG });
+  };
   const renderSlider = (param: ParameterDef) => {
     const pct = getPercent(param);
     const isDefault = config[param.key] === DEFAULT_FAN_CONFIG[param.key];
+    const decimals = param.step < 1 ? 2 : 0;
+
+    const clampAndSet = (raw: number) => {
+      const clamped = Math.min(param.max, Math.max(param.min, raw));
+      // 对齐步长精度，避免浮点漂移
+      const rounded = parseFloat(clamped.toFixed(decimals));
+      handleSliderChange(param.key, rounded);
+    };
+
     return (
       <div key={param.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
         <div style={{
@@ -185,18 +323,8 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               {param.key}
             </span>
           </label>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: isDefault ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.7)",
-              fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
-              minWidth: 32,
-              textAlign: "right",
-              transition: "color 100ms",
-            }}>
-              {config[param.key].toFixed(param.step < 1 ? 2 : 0)}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            {/* ─ 复原（在减号左侧） ─ */}
             {!isDefault && (
               <button
                 onClick={() => handleResetParameter(param.key)}
@@ -224,6 +352,17 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
                 <RotateCcw size={11} />
               </button>
             )}
+            {/* ─ 减 ─ */}
+            <StepButton direction="minus" onClick={() => clampAndSet(config[param.key] - param.step)} />
+            {/* ─ 可编辑数值 ─ */}
+            <EditableValue
+              value={config[param.key]}
+              decimals={decimals}
+              isDefault={isDefault}
+              onCommit={clampAndSet}
+            />
+            {/* ─ 加 ─ */}
+            <StepButton direction="plus" onClick={() => clampAndSet(config[param.key] + param.step)} />
           </div>
         </div>
 
@@ -267,12 +406,12 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
         }
         .${cls}::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 14px;
-          height: 14px;
-          margin-top: -5px;
-          border-radius: 50%;
+          width: 8px;
+          height: 16px;
+          margin-top: -6px;
+          border-radius: 4px;
           background: #fff;
-          border: 2px solid rgba(0,0,0,0.22);
+          border: 1.5px solid rgba(0,0,0,0.22);
           box-shadow: 0 1px 4px rgba(0,0,0,0.12);
           cursor: pointer;
           transition: border-color 120ms, box-shadow 120ms, transform 120ms;
@@ -280,11 +419,11 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
         .${cls}::-webkit-slider-thumb:hover {
           border-color: rgba(0,0,0,0.4);
           box-shadow: 0 1px 6px rgba(0,0,0,0.2);
-          transform: scale(1.1);
+          transform: scaleX(1.15);
         }
         .${cls}::-webkit-slider-thumb:active {
           border-color: rgba(0,0,0,0.5);
-          transform: scale(0.95);
+          transform: scaleY(0.9);
         }
         .${cls}::-moz-range-track {
           height: 4px;
@@ -298,11 +437,11 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
           background: rgba(0,0,0,0.22);
         }
         .${cls}::-moz-range-thumb {
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
+          width: 8px;
+          height: 16px;
+          border-radius: 4px;
           background: #fff;
-          border: 2px solid rgba(0,0,0,0.22);
+          border: 1.5px solid rgba(0,0,0,0.22);
           box-shadow: 0 1px 4px rgba(0,0,0,0.12);
           cursor: pointer;
         }
@@ -328,7 +467,7 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               opacity: 0,
               scale: 2.5,
               y: "-65vh",
-              backgroundColor: "rgba(255,255,255,0.72)",
+              backgroundColor: "rgba(255,255,255,0.80)",
             }}
             transition={{
               duration: 0.45,
@@ -371,7 +510,7 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
           <motion.div
             key="expanded-panel"
             initial={{ opacity: 0, scale: 0.6, y: 40 }}
-            animate={{ opacity: 1, y: 0, scale: 1, backgroundColor: "rgba(255,255,255,0.72)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, backgroundColor: "rgba(255,255,255,0.80)" }}
             exit={{
               // 收起：面板飞向右下角，缩成圆，变黑
               opacity: 0,
@@ -396,9 +535,9 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               right: 20,
               width: 260,
               borderRadius: 12,
-              backgroundColor: "rgba(255,255,255,0.72)",
-              backdropFilter: "blur(20px) saturate(60%)",
-              WebkitBackdropFilter: "blur(20px) saturate(60%)",
+              backgroundColor: "rgba(255,255,255,0.80)",
+              backdropFilter: "blur(13px) saturate(90%)",
+              WebkitBackdropFilter: "blur(13px) saturate(90%)",
               border: "1px solid rgba(0,0,0,0.08)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
               overflow: "hidden",
@@ -421,8 +560,36 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
                   卡片参数
                 </span>
               </div>
-              <button
-                onClick={handleCollapse}
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                {hasAnyChange && (
+                  <button
+                    onClick={handleResetAll}
+                    title="全部重置为默认值"
+                    style={{
+                      width: 20, height: 20,
+                      border: "none",
+                      background: "rgba(0,0,0,0.05)",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      padding: 0, flexShrink: 0,
+                      color: "rgba(0,0,0,0.4)",
+                      transition: "all 100ms",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "rgba(0,0,0,0.7)";
+                      e.currentTarget.style.background = "rgba(0,0,0,0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "rgba(0,0,0,0.4)";
+                      e.currentTarget.style.background = "rgba(0,0,0,0.05)";
+                    }}
+                  >
+                    <RotateCcw size={12} />
+                  </button>
+                )}
+                <button
+                  onClick={handleCollapse}
                 style={{
                   width: 20, height: 20,
                   border: "none", background: "transparent",
@@ -443,6 +610,7 @@ export default function FanCardEditor({ config, onChange, onHoverChange }: FanCa
               >
                 ×
               </button>
+              </div>
             </div>
 
             {/* ── 参数区（可滚动） ── */}

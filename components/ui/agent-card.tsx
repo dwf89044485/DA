@@ -100,10 +100,10 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   restShadowBlur: 8,
   restShadowAlpha: 0.03,
   // 信息区毛玻璃
-  infoFromOpacity: 0.90,
-  infoToOpacity: 0.80,
-  infoBlur: 20,
-  infoSaturate: 180,
+  infoFromOpacity: 0.80,
+  infoToOpacity: 0.70,
+  infoBlur: 13,
+  infoSaturate: 90,
   // 动画
   fanTransitionDuration: 0.60,
   hoverTransitionDuration: 0.30,
