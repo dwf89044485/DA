@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   IconCatalog,
@@ -746,24 +746,69 @@ export function AgentFanCards({
   isEditorHovered?: boolean;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [anchorX, setAnchorX] = useState(0);
+  const hoveredIdxRef = useRef<number | null>(null);
+  const anchorXRef = useRef(0);
+
+  const getRelativeOffset = (i: number, hovered: number | null) => {
+    if (hovered === null) return 0;
+    if (i === hovered) return 0;
+    const dist = Math.abs(i - hovered);
+    if (dist === 1) {
+      const dir = i < hovered ? -1 : 1;
+      return dir * config.dist1X;
+    }
+    if (dist === 2) {
+      const dir = i < hovered ? -1 : 1;
+      return dir * config.dist2X;
+    }
+    return 0;
+  };
+
+  const getCurrentX = (i: number, hovered: number | null, baseAnchorX: number) => {
+    if (hovered === null) return 0;
+    return baseAnchorX + getRelativeOffset(i, hovered);
+  };
 
   // 当编辑器被 hover 时，自动浮起第二张卡片
   const activeHoveredIdx = isEditorHovered ? 1 : hoveredIdx;
+  const activeAnchorX = isEditorHovered ? 0 : anchorX;
 
   const getOffset = (i: number) => {
     if (activeHoveredIdx === null) return { x: 0 };
-    if (i === activeHoveredIdx) return { x: 0 };
-    const dist = Math.abs(i - activeHoveredIdx);
-    if (dist === 1) {
-      const dir = i < activeHoveredIdx ? -1 : 1;
-      return { x: dir * config.dist1X };
-    }
-    if (dist === 2) {
-      const dir = i < activeHoveredIdx ? -1 : 1;
-      return { x: dir * config.dist2X };
-    }
-    return { x: 0 };
+    return { x: activeAnchorX + getRelativeOffset(i, activeHoveredIdx) };
   };
+
+  const handleMouseEnter = (i: number) => {
+    if (isEditorHovered) return;
+    const currentX = getCurrentX(i, hoveredIdxRef.current, anchorXRef.current);
+    setAnchorX(currentX);
+    setHoveredIdx(i);
+    anchorXRef.current = currentX;
+    hoveredIdxRef.current = i;
+  };
+
+  const clearHover = () => {
+    if (isEditorHovered) return;
+    setHoveredIdx(null);
+    setAnchorX(0);
+    hoveredIdxRef.current = null;
+    anchorXRef.current = 0;
+  };
+
+  useEffect(() => {
+    hoveredIdxRef.current = hoveredIdx;
+  }, [hoveredIdx]);
+
+  useEffect(() => {
+    anchorXRef.current = anchorX;
+  }, [anchorX]);
+
+  useEffect(() => {
+    if (!isEditorHovered) return;
+    hoveredIdxRef.current = null;
+    anchorXRef.current = 0;
+  }, [isEditorHovered]);
 
   return (
     <div style={{
@@ -774,13 +819,16 @@ export function AgentFanCards({
       alignItems: "center",
       justifyContent: "center",
     }}>
-      <div style={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        gap: 0,
-        position: "relative",
-      }}>
+      <div
+        onMouseLeave={clearHover}
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          gap: 0,
+          position: "relative",
+        }}
+      >
         {FAN_CARD_DATA.map((data, i) => {
           const rotates = [-config.rotateOuter, -config.rotateInner, config.rotateInner, config.rotateOuter];
           const rotate = rotates[i] ?? 0;
@@ -803,8 +851,7 @@ export function AgentFanCards({
                 y: { duration: config.hoverTransitionDuration, ease: EASE },
                 scale: { duration: config.hoverTransitionDuration, ease: EASE },
               }}
-              onMouseEnter={() => !isEditorHovered && setHoveredIdx(i)}
-              onMouseLeave={() => !isEditorHovered && setHoveredIdx(null)}
+              onMouseEnter={() => handleMouseEnter(i)}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
