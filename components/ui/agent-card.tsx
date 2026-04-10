@@ -96,8 +96,8 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   restShadowBlur: 8,
   restShadowAlpha: 0.03,
   // 信息区毛玻璃
-  infoFromOpacity: 0.80,
-  infoToOpacity: 0.70,
+  infoFromOpacity: 0.90,
+  infoToOpacity: 0.80,
   infoBlur: 13,
   infoSaturate: 90,
   // 动画
@@ -207,70 +207,6 @@ interface AgentCardProps {
   fanConfig?: FanCardsConfig;
 }
 
-// ── 展开技能标签（独立组件，避免在 .map 内使用 hooks）──────────
-function ExpandedSkillChip({ label, clickable, onClick }: { label: string; clickable: boolean; onClick: () => void }) {
-  const [isHovered, setIsHovered] = useState(false);
-  return (
-    <div
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 28,
-        paddingLeft: 12,
-        paddingRight: 8,
-        borderRadius: 100,
-        background: isHovered ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
-        boxShadow: isHovered ? "0 1px 6px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
-        cursor: clickable ? "pointer" : "default",
-        transition: "background 100ms, box-shadow 100ms",
-      }}
-    >
-      <span style={{ fontSize: 12, lineHeight: "20px", color: T.primary, whiteSpace: "nowrap" }}>
-        {label}
-      </span>
-      <ArrowUpRight />
-    </div>
-  );
-}
-
-// ── 小箭头图标 ──────────────────────────────────────────────────
-function ArrowUpRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M5.5 4.5H11.5V10.5M11.5 4.5L4.5 11.5"
-        stroke="rgba(0,0,0,0.35)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-// ── AI 聊天图标 ─────────────────────────────────────────────────
-function AiChatIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M8 1.5C4.41 1.5 1.5 4.08 1.5 7.25C1.5 8.87 2.28 10.33 3.56 11.35L3 14.5L6.26 12.82C6.82 12.94 7.4 13 8 13C11.59 13 14.5 10.42 14.5 7.25C14.5 4.08 11.59 1.5 8 1.5Z"
-        stroke="white"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="5.5" cy="7.25" r="0.75" fill="white" />
-      <circle cx="8" cy="7.25" r="0.75" fill="white" />
-      <circle cx="10.5" cy="7.25" r="0.75" fill="white" />
-    </svg>
-  );
-}
-
 // ── 尺寸常量 ────────────────────────────────────────────────────
 const CARD_HEIGHT = 438;
 
@@ -315,7 +251,7 @@ export default function AgentCard({
       onMouseLeave={() => controlledHover === undefined && setInternalHover(false)}
       onClick={onClick}
       style={{
-        width: 288,
+        width: 310,
         height: CARD_HEIGHT,
         borderRadius: 24,
         overflow: "hidden",
@@ -398,17 +334,20 @@ export default function AgentCard({
           WebkitBackdropFilter: `blur(${fanConfig?.infoBlur ?? DEFAULT_FAN_CONFIG.infoBlur}px) saturate(${fanConfig?.infoSaturate ?? DEFAULT_FAN_CONFIG.infoSaturate}%)`,
           display: "flex",
           flexDirection: "column",
+          gap: hovered ? 24 : 0,
           paddingLeft: 24,
           paddingRight: 24,
         }}
       >
-        {/* ── 顶部：名字区 ─────────────────────────────── */}
-        <div style={{ flexShrink: 0, marginBottom: 8 }}>
+        {/* ── 顶部：名字+描述区 ──────────────────────── */}
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: hovered ? 12 : 8 }}>
+          {/* 名字 */}
+          <div>
           {/* 英文名 */}
           <p
             style={{
               fontFamily: FONT_EN,
-              fontSize: 20,
+              fontSize: 16,
               lineHeight: "24px",
               fontWeight: 500,
               color: nameColor ?? T.blue,
@@ -434,7 +373,7 @@ export default function AgentCard({
           >
             {title}
           </motion.p>
-        </div>
+          </div>
 
         {/* ── 标签/描述 切换区 — 同一位置，交叉淡入 ────── */}
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -499,7 +438,6 @@ export default function AgentCard({
                 color: T.secondary,
                 margin: 0,
                 textAlign: "justify",
-                minHeight: 60,
                 // 默认时不占空间、不可交互
                 ...(!hovered
                   ? { position: "absolute", top: 0, left: 0, right: 0, pointerEvents: "none" as const }
@@ -510,6 +448,7 @@ export default function AgentCard({
             </motion.p>
           )}
         </div>
+        </div>
 
         {/* ── 以下内容：默认 opacity 0，hover 上浮后显现 ── */}
 
@@ -519,7 +458,7 @@ export default function AgentCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: hovered ? 1 : 0 }}
             transition={transition}
-            style={{ display: "flex", gap: 12, marginTop: 12, flexShrink: 0 }}
+            style={{ display: "flex", gap: 12, flexShrink: 0 }}
           >
             {stats.map((stat, i) => (
               <div key={i} style={{ flex: 1 }}>
@@ -537,8 +476,8 @@ export default function AgentCard({
                 </p>
                 <p
                   style={{
-                    fontSize: 11,
-                    lineHeight: "16px",
+                    fontSize: 12,
+                    lineHeight: "20px",
                     color: T.secondary,
                     margin: 0,
                   }}
@@ -560,83 +499,70 @@ export default function AgentCard({
             height: 1,
             background: "rgba(0,0,0,0.08)",
             flexShrink: 0,
-            marginTop: 24,
           }}
         />
 
-        {/* ⑤ 展开标签 — 带箭头 */}
+        {/* ⑤ "我可以帮你" + 展开标签 — 流式布局 */}
         {expandedSkills && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: hovered ? 1 : 0 }}
             transition={transition}
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 8,
-              marginTop: 24,
-            }}
-          >
-            {expandedSkills.map((label, i) => (
-              <ExpandedSkillChip
-                key={i}
-                label={label}
-                clickable={!!onSkillClick}
-                onClick={() => onSkillClick?.(label)}
-              />
-            ))}
-          </motion.div>
-        )}
-
-        {/* 弹性间距 — 把 CTA 推到底部 */}
-        <div style={{ flex: 1 }} />
-
-        {/* ⑥ CTA 按钮 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: hovered ? 1 : 0 }}
-          transition={transition}
-          style={{ flexShrink: 0 }}
-        >
-          <div
-            onClick={(e) => { e.stopPropagation(); onSummon?.(); }}
-            onMouseEnter={(e) => {
-              const div = e.currentTarget as HTMLDivElement;
-              div.style.background = "rgba(0,0,0,0.85)";
-              div.style.boxShadow = "0 2px 8px -2px rgba(0,0,0,0.3)";
-            }}
-            onMouseLeave={(e) => {
-              const div = e.currentTarget as HTMLDivElement;
-              div.style.background = "rgba(0,0,0,0.75)";
-              div.style.boxShadow = "0 2px 4px -2px rgba(0,0,0,0.2)";
-            }}
-            style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              height: 44,
-              borderRadius: 100,
-              background: "rgba(0,0,0,0.75)",
-              boxShadow: "0 2px 4px -2px rgba(0,0,0,0.2)",
-              cursor: "pointer",
-              transition: "background 100ms, box-shadow 100ms",
+              flexDirection: "column",
+              gap: 12,
             }}
           >
-            <AiChatIcon />
-            <span
+            <p
               style={{
-                fontSize: 14,
-                fontWeight: 500,
-                lineHeight: "22px",
-                color: "#FFFFFF",
-                whiteSpace: "nowrap",
+                fontSize: 12,
+                lineHeight: "20px",
+                color: T.secondary,
+                margin: 0,
+                textAlign: "justify",
               }}
             >
-              {ctaLabel}
-            </span>
-          </div>
-        </motion.div>
+              我可以帮你
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              {expandedSkills.map((label, i) => (
+                <div
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); onSkillClick?.(label); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: 28,
+                    paddingLeft: 12,
+                    paddingRight: 8,
+                    borderRadius: 100,
+                    background: "rgba(255,255,255,0.5)",
+                    cursor: onSkillClick ? "pointer" : "default",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      lineHeight: "20px",
+                      color: T.primary,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );
@@ -648,16 +574,15 @@ const ic = "rgba(0,0,0,0.45)";
 // ── 预设数据：Rigel 名片 ────────────────────────────────────────
 export const RIGEL_DATA: AgentCardProps = {
   name: "Rigel",
-  title: "数仓工程专家",
+  title: "数据工程专家",
   avatar: "/agents/1a.png",
-  bgImage: "/agents/1b.png",
   summonText: "今天想开发什么数仓？",
   description:
     "擅长数仓建模与全链路工程开发，把业务需求转化为可落地的数据架构，调度、运维、异常处理一手包办",
   stats: [
-    { value: "40+", label: "支持建模模式" },
-    { value: "80%", label: "减少重复开发" },
-    { value: "99.2%", label: "调度成功率" },
+    { value: "30+", label: "支持数据源" },
+    { value: "3min", label: "平均完成时长" },
+    { value: "99.4%", label: "任务成功率" },
   ],
   skills: [
     { label: "需求转数据模型", icon: <IconCatalog size={14} color={ic} /> },
@@ -686,14 +611,13 @@ export const VEGA_DATA: AgentCardProps = {
   nameColor: "#00BBA2",
   title: "数据分析专家",
   avatar: "/agents/2a.png",
-  bgImage: "/agents/2b.png",
   summonText: "今天想分析什么数据？",
   description:
-    "精通多维数据分析与智能洞察，用自然语言取数，快速识别趋势异常，输出高质量数据报告",
+    "擅长多维取数与智能趋势分析，把散乱的数据变成看得懂的洞察结论，自然语言提问、多维穿透、报告生成，样样精通",
   stats: [
-    { value: "200+", label: "分析模板" },
-    { value: "90%", label: "自动化率" },
-    { value: "3min", label: "平均出报告" },
+    { value: "40+", label: "图表组件类型" },
+    { value: "6min", label: "平均出图时长" },
+    { value: "3000+", label: "累计搭建看板" },
   ],
   skills: [
     { label: "自然语言取数", icon: <IconCatalog size={14} color={ic} /> },
@@ -716,14 +640,13 @@ export const ORION_DATA: AgentCardProps = {
   nameColor: "#CC6B3A",
   title: "数据治理专家",
   avatar: "/agents/3a.png",
-  bgImage: "/agents/3b.png",
   summonText: "今天想治理哪些数据？",
   description:
-    "全面覆盖数据质量、血缘追踪与元数据管理，自动识别口径冲突，确保数据资产健康可信",
+    "擅长数据质量监控与元数据管理，把混乱的数据资产梳理成有序可信的治理体系，血缘维护、口径统一、规则执行，一套不落",
   stats: [
-    { value: "50+", label: "治理规则" },
-    { value: "99.5%", label: "质量达标率" },
-    { value: "1000+", label: "治理表数" },
+    { value: "100+", label: "指标模型" },
+    { value: "全行业", label: "场景覆盖" },
+    { value: "98.9%", label: "口径一致率" },
   ],
   skills: [
     { label: "监测数据质量", icon: <IconCatalog size={14} color={ic} /> },
@@ -746,7 +669,6 @@ export const NOVA_DATA: AgentCardProps = {
   nameColor: "#934BFF",
   title: "业务运营专家",
   avatar: "/agents/4a.png",
-  bgImage: "/agents/4b.png",
   summonText: "今天想运营什么业务？",
   description:
     "专注业务指标监控与运营看板搭建，智能预警异常波动，帮助业务团队快速自助取数、驱动决策",
@@ -772,7 +694,7 @@ export const NOVA_DATA: AgentCardProps = {
 };
 
 // ── 三卡扇形排列组件 ───────────────────────────────────────────
-const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, NOVA_DATA];
+const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, ORION_DATA];
 
 export type AgentCardPreviewState = "free" | "default" | "hover";
 

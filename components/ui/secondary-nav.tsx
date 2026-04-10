@@ -24,7 +24,7 @@ const C = {
 const COLLAPSE_DURATION = 0.22;
 const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 const CONTENT_FADE = 0.18;
-const COLLAPSED_WIDTH = 80;
+const COLLAPSED_WIDTH = 116;
 const EXPANDED_WIDTH = 320;
 
 // ── Status icon types ──────────────────────────────────────────
@@ -115,25 +115,6 @@ function StatusIcon({ status }: { status: TaskStatus }) {
   }
 }
 
-// ── Badge component ────────────────────────────────────────────
-function Badge({ count }: { count: number }) {
-  return (
-    <div style={{
-      width: 16, height: 16, borderRadius: 100,
-      backgroundColor: C.badgeBg,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0,
-    }}>
-      <span style={{
-        fontFamily: FONT, fontSize: 12, fontWeight: 500,
-        lineHeight: "20px", color: C.badgeText,
-      }}>
-        {count}
-      </span>
-    </div>
-  );
-}
-
 // ── Section header ─────────────────────────────────────────────
 function SectionHeader({ label }: { label: string }) {
   return (
@@ -149,10 +130,9 @@ function SectionHeader({ label }: { label: string }) {
 }
 
 // ── Task item ──────────────────────────────────────────────────
-function TaskItem({ status, title, badge, indented }: {
+function TaskItem({ status, title, indented }: {
   status: TaskStatus;
   title: string;
-  badge?: number;
   indented?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -178,7 +158,6 @@ function TaskItem({ status, title, badge, indented }: {
         }}>
           {title}
         </span>
-        {badge !== undefined && <Badge count={badge} />}
       </div>
     </div>
   );
@@ -345,13 +324,13 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
           opacity: collapsed ? 1 : 0,
           pointerEvents: collapsed ? "auto" : "none",
           display: "flex", alignItems: "center",
-          padding: "0 8px",
+          padding: "0 12px 0 8px",
         }}>
-          <ToolbarButton onClick={onToggle} title="新建对话">
-            <IconAiNewChat />
-          </ToolbarButton>
           <ToolbarButton onClick={() => setCollapsed(false)} title="展开面板">
             <IconSidebarPanel />
+          </ToolbarButton>
+          <ToolbarButton onClick={onToggle} title="新建对话">
+            <IconAiNewChat />
           </ToolbarButton>
         </div>
       </div>
