@@ -15,6 +15,7 @@ import ChatTitlebar from "@/components/ui/chat-titlebar";
 import UserMessageBubble from "@/components/ui/user-message-bubble";
 import Plan from "@/components/ui/agent-plan";
 import ThinkingSummary from "@/components/ui/thinking-summary";
+import ArtifactsPanel from "@/components/ui/artifacts-panel";
 
 // ── Design tokens ──────────────────────────────────────────────
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
@@ -99,6 +100,7 @@ export default function Home() {
   const [chatPhase, setChatPhase] = useState<ChatPhase>("welcome");
   const [userMessage, setUserMessage] = useState<string>("");
   const [conversationTitle, setConversationTitle] = useState<string>("");
+  const [artifactsPanelOpen, setArtifactsPanelOpen] = useState(false);
   // 对话流分步揭示：0=用户气泡, 1=思考摘要, 2=Plan卡片
   const [revealStep, setRevealStep] = useState(0);
   // 卡片参数配置
@@ -190,6 +192,7 @@ export default function Home() {
     setChatPhase("welcome");
     setUserMessage("");
     setConversationTitle("");
+    setArtifactsPanelOpen(false);
     setRevealStep(0);
     setSummonedAgent(null);
     setActiveSkills([]);
@@ -325,13 +328,15 @@ export default function Home() {
             position: "absolute",
             inset: 0,
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
             overflow: "hidden",
             transformOrigin: "bottom right",
             willChange: "transform, border-radius, opacity, filter",
             zIndex: 2,
           }}
         >
+        {/* ── 聊天主区域（flex-1 column） ── */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* ── 顶部标题栏 84px ── */}
         <div style={{
           height: 84,
@@ -382,6 +387,7 @@ export default function Home() {
               >
                 <ChatTitlebar
                   title={conversationTitle}
+                  onArtifacts={() => setArtifactsPanelOpen(v => !v)}
                 />
               </motion.div>
             )}
@@ -679,6 +685,16 @@ export default function Home() {
             zIndex: 50,
           }}
         />
+
+        </div>{/* 聊天主区域 end */}
+
+        {/* ── 产物面板 ── */}
+        {chatPhase === "conversation" && (
+          <ArtifactsPanel
+            open={artifactsPanelOpen}
+            onClose={() => setArtifactsPanelOpen(false)}
+          />
+        )}
 
         </motion.div>
         )}

@@ -24,7 +24,7 @@ const C = {
 const COLLAPSE_DURATION = 0.22;
 const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 const CONTENT_FADE = 0.18;
-const COLLAPSED_WIDTH = 116;
+const COLLAPSED_WIDTH = 68;
 const EXPANDED_WIDTH = 320;
 
 // ── Status icon types ──────────────────────────────────────────
@@ -325,20 +325,17 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
           </div>
         </div>
 
-        {/* 收起态工具栏：新建 + 展开 */}
+        {/* 收起态工具栏：仅展开 */}
         <div style={{
           ...contentFade,
           position: "absolute", inset: 0,
           opacity: collapsed ? 1 : 0,
           pointerEvents: collapsed ? "auto" : "none",
-          display: "flex", alignItems: "center",
-          padding: "0 12px 0 8px",
+          display: "flex", alignItems: "center", justifyContent: "flex-start",
+          padding: "0 0 0 24px",
         }}>
           <ToolbarButton onClick={() => setCollapsed(false)} title="展开面板">
             <IconSidebarPanel />
-          </ToolbarButton>
-          <ToolbarButton onClick={onToggle} title="新建对话">
-            <IconAiNewChat />
           </ToolbarButton>
         </div>
       </div>

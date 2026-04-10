@@ -292,3 +292,21 @@ export function IconData({ size = 16, color = "currentColor", style, className }
     </svg>
   );
 }
+
+// ── 关闭 (Close X) ─────────────────────────────────────────────
+export function IconClose({ size = 16, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// ── 右上箭头 (Arrow right-up) ───────────────────────────────────
+export function IconArrowRightUp({ size = 16, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <path d="M5.5 4.5H11.5V10.5M11.5 4.5L4.5 11.5" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
