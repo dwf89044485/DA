@@ -18,6 +18,7 @@ function SendIcon({ size = 16, color = "#FFFFFF" }: { size?: number; color?: str
 
 // ── Design tokens ──────────────────────────────────────────────
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const SF_FONT = "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 // ── Types ──────────────────────────────────────────────────────
 interface AttachedFile {
@@ -288,7 +289,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             transition: "padding 0.3s ease",
             background: isActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
-              : "#E8EAED",
+              : "#DFE2E8",
             animation: shouldAnimate ? `border-rotate ${borderRotateDuration}s linear infinite` : "none",
           }}
         >
@@ -298,7 +299,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             position: "relative",
             borderRadius: 24,
             backgroundColor: "#FFFFFF",
-            boxShadow: "0px 4px 8px -4px rgba(0,0,0,0.03), 0px 8px 16px -8px rgba(0,0,0,0.06)",
+            boxShadow: "0px 4px 8px -4px rgba(0,0,0,0.04), 0px 8px 16px -8px rgba(0,0,0,0.06)",
             transition: "box-shadow 0.3s ease",
             display: "flex",
             flexDirection: "column",
@@ -412,129 +413,130 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
               padding: 16,
             }}
           >
-            {/* 左侧工具区：始终可见 */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              {/* + 按钮 + 分隔线 + Agent 下拉 */}
-              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                {/* + 按钮 + 分隔线 */}
-                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                  {/* 左侧工具：add 按钮 */}
-                  <div style={{ display: "flex", gap: 4, height: 28, alignItems: "center", borderRadius: 16, flexShrink: 0 }}>
-                    <div
-                      onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                        padding: "4px 12px",
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
-                        <img src="/icons/add.svg" alt="" style={{
-                          position: "absolute",
-                          top: "16.67%",
-                          left: "16.67%",
-                          width: "66.67%",
-                          height: "66.67%",
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                  {/* 竖线分隔符 */}
-                  <div style={{ position: "relative", width: 0, height: 12, flexShrink: 0 }}>
-                    <div style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      left: -0.5,
-                      right: -0.5,
-                      backgroundColor: "#E8EAED",
-                    }} />
-                  </div>
-                </div>
-
-                {/* Agent 下拉按钮 */}
-                <div style={{ display: "flex", gap: 4, height: 28, alignItems: "center", borderRadius: 16, flexShrink: 0, width: 98, justifyContent: "center" }}>
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      display: "flex",
-                      gap: 4,
-                      height: "100%",
-                      alignItems: "center",
-                      paddingLeft: 12,
-                      paddingRight: 2,
-                      paddingTop: 4,
-                      paddingBottom: 4,
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0, overflow: "hidden" }}>
-                      <img src="/icons/agent.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-                    </div>
-                    <span style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      lineHeight: "22px",
-                      color: "rgba(0,0,0,0.9)",
-                      whiteSpace: "nowrap",
-                      fontFamily: FONT,
-                    }}>
-                      Agent
-                    </span>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 模型选择器 */}
+            {/* 左侧工具 — h-32 gap-8 rounded-14 */}
+            <div style={{ display: "flex", gap: 8, height: 32, alignItems: "center", borderRadius: 14, flexShrink: 0 }}>
+              {/* btn-add: 32×32 rounded-16 */}
               <div
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 style={{
-                  display: "flex",
-                  gap: 4,
+                  position: "relative",
+                  width: 32,
                   height: 32,
-                  alignItems: "center",
-                  paddingLeft: 12,
-                  paddingRight: 12,
-                  borderRadius: 20,
+                  borderRadius: 16,
+                  overflow: "hidden",
                   cursor: "pointer",
                   flexShrink: 0,
                 }}
               >
-                <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
-                  <img src="/icons/claude-logo.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                {/* add icon: 外层 inset 18.75%, 内层再 inset 16.67% */}
+                <div style={{ position: "absolute", inset: "18.75%" }}>
+                  <div style={{ position: "absolute", inset: "16.67%" }}>
+                    <img src="/icons/add.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+                  </div>
                 </div>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  lineHeight: "22px",
-                  color: "rgba(0,0,0,0.9)",
-                  whiteSpace: "nowrap",
-                  fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                }}>
-                  Claude-Opus-4.6
-                </span>
-                <div style={{ position: "relative", width: 14, height: 14, flexShrink: 0 }}>
-                  <div style={{ position: "absolute", top: "33.69%", right: "21.19%", bottom: "31.61%", left: "21.19%" }}>
-                    <img src="/icons/chevron-down.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+              </div>
+
+              {/* 分割线: h-16 w-1px */}
+              <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 1, height: 16, backgroundColor: "#DFE2E8", flexShrink: 0 }} />
+              </div>
+
+              {/* 工具组合: Agent + Model + Skills */}
+              <div style={{ display: "flex", gap: 4, height: "100%", alignItems: "center", flexShrink: 0 }}>
+                {/* Agent 按钮: px-8 rounded-20 gap-4 */}
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    height: "100%",
+                    alignItems: "center",
+                    padding: "0 8px",
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                    <img src="/icons/ai-agent.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                  </div>
+                  <span style={{
+                    fontSize: 14, fontWeight: 500, lineHeight: "22px",
+                    color: "rgba(0,0,0,0.9)", whiteSpace: "nowrap",
+                    fontFamily: SF_FONT,
+                  }}>Agent</span>
+                  {/* chevron-down: 14×14, arrow inset [33.69% 21.19% 31.61% 21.19%] */}
+                  <div style={{ position: "relative", width: 14, height: 14, flexShrink: 0 }}>
+                    <div style={{ position: "absolute", top: "33.69%", right: "21.19%", bottom: "31.61%", left: "21.19%" }}>
+                      <img src="/icons/chevron-down.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 模型按钮: h-32 px-8 rounded-20 gap-4 */}
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    height: 32,
+                    alignItems: "center",
+                    padding: "0 8px",
+                    borderRadius: 20,
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                    <img src="/icons/claude-logo.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                  </div>
+                  <span style={{
+                    fontSize: 14, fontWeight: 500, lineHeight: "22px",
+                    color: "rgba(0,0,0,0.9)", whiteSpace: "nowrap",
+                    fontFamily: SF_FONT,
+                  }}>Claude-Opus-4.6</span>
+                  <div style={{ position: "relative", width: 14, height: 14, flexShrink: 0 }}>
+                    <div style={{ position: "absolute", top: "33.69%", right: "21.19%", bottom: "31.61%", left: "21.19%" }}>
+                      <img src="/icons/chevron-down.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skills 按钮: px-8 rounded-20 gap-4 */}
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    height: "100%",
+                    alignItems: "center",
+                    padding: "0 8px",
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                    <img src="/icons/ai-edit.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                  </div>
+                  <span style={{
+                    fontSize: 14, fontWeight: 500, lineHeight: "22px",
+                    color: "rgba(0,0,0,0.9)", whiteSpace: "nowrap",
+                    fontFamily: SF_FONT,
+                  }}>Skills</span>
+                  <div style={{ position: "relative", width: 14, height: 14, flexShrink: 0 }}>
+                    <div style={{ position: "absolute", top: "33.69%", right: "21.19%", bottom: "31.61%", left: "21.19%" }}>
+                      <img src="/icons/chevron-down.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 右侧：发送按钮 */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", borderRadius: 12 }}>
               <button
                 onClick={handleSend}
                 disabled={!hasContent}
