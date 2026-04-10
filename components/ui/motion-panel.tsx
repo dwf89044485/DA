@@ -458,7 +458,7 @@ export default function MotionPanel({
           position: "absolute",
           top: 20,
           right: 20,
-          width: 260,
+          width: 300,
           borderRadius: 12,
           backgroundColor: "rgba(255,255,255,0.80)",
           backdropFilter: "blur(13px) saturate(90%)",
