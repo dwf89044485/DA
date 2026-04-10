@@ -103,7 +103,7 @@ const popupMenuStyle: React.CSSProperties = {
   gap: 2,
   zIndex: 100,
   minWidth: 180,
-  animation: "ci-menu-in 0.18s cubic-bezier(0.16,1,0.3,1) both",
+  animation: "ci-menu-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both",
 };
 
 const menuItemStyle: React.CSSProperties = {
@@ -827,7 +827,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         .ci-menu-item:hover { background: #F2F4F8 !important; }
 
         @keyframes ci-menu-in {
-          from { opacity: 0; transform: translateY(6px) scale(0.98); }
+          from { opacity: 0; transform: translateY(8px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
