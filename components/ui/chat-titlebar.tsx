@@ -5,7 +5,7 @@ import { IconAiNewChat, IconData } from "./wedata-icons";
 
 // ── Design DNA tokens ────────────────────────────────────────────
 const TEXT_PRIMARY = "rgba(0,0,0,0.9)";
-const ICON_COLOR = "rgba(0,0,0,0.5)";
+const ICON_COLOR = "rgba(0,0,0,0.9)";
 const HOVER_ICON_BTN = "rgba(0,0,0,0.05)";
 const FONT_HEADING =
   "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
@@ -15,6 +15,7 @@ const ICON_SIZE = 16;
 // ── Types ────────────────────────────────────────────────────────
 interface ChatTitlebarProps {
   title?: string;
+  showNewChat?: boolean;
   onNewChat?: () => void;
   onArtifacts?: () => void;
 }
@@ -22,6 +23,7 @@ interface ChatTitlebarProps {
 // ── Component ────────────────────────────────────────────────────
 export default function ChatTitlebar({
   title,
+  showNewChat = true,
   onNewChat,
   onArtifacts,
 }: ChatTitlebarProps) {
@@ -32,14 +34,16 @@ export default function ChatTitlebar({
         alignItems: "center",
         width: "100%",
         height: "100%",
-        padding: "20px 16px 20px 0",
+        padding: "20px 24px 20px 0",
         fontFamily: FONT_HEADING,
       }}
     >
-      {/* ── Left: 新建对话 ── */}
-      <ActionButton onClick={onNewChat} label="新建对话">
-        <IconAiNewChat size={ICON_SIZE} color={ICON_COLOR} />
-      </ActionButton>
+      {/* ── Left: 新建对话（仅 SecondaryNav 收起时显示） ── */}
+      {showNewChat && (
+        <ActionButton onClick={onNewChat} label="新建对话">
+          <IconAiNewChat size={ICON_SIZE} color={ICON_COLOR} />
+        </ActionButton>
+      )}
 
       {/* ── Center: Title (flex-1, text-center) ── */}
       <p

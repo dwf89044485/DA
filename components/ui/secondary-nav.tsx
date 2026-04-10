@@ -55,7 +55,7 @@ function IconPending({ size = 16 }: { size?: number }) {
 function IconCheck({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M13.3137 4.943L6.24264 12.014L2 7.771L2.943 6.828L6.243 10.128L12.371 4L13.3137 4.943Z" fill="rgba(0,0,0,0.9)"/>
+      <path d="M13.3137 4.943L6.24264 12.014L2 7.771L2.943 6.828L6.243 10.128L12.371 4L13.3137 4.943Z" fill="rgba(0,0,0,0.5)"/>
     </svg>
   );
 }
@@ -183,7 +183,7 @@ function MoreLink({ count }: { count: number }) {
       }}
     >
       <span style={{
-        fontFamily: FONT, fontSize: 12, fontWeight: 400,
+        fontFamily: FONT, fontSize: 14, fontWeight: 400,
         lineHeight: "20px", color: C.textTertiary,
       }}>
         显示更多({count})
@@ -264,9 +264,11 @@ function ToolbarButton({ onClick, title, children }: {
 // ── Main component ─────────────────────────────────────────────
 interface SecondaryNavProps {
   onToggle?: () => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
+  onNewTask?: () => void;
 }
 
-export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
+export default function SecondaryNav({ onToggle, onCollapsedChange, onNewTask }: SecondaryNavProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [folder1Open, setFolder1Open] = useState(true);
   const [folder2Open, setFolder2Open] = useState(true);
@@ -328,7 +330,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
                 DataBuddy
               </span>
             </div>
-            <ToolbarButton onClick={() => setCollapsed(true)} title="收起面板">
+            <ToolbarButton onClick={() => { setCollapsed(true); onCollapsedChange?.(true); }} title="收起面板">
               <IconSidebarPanel />
             </ToolbarButton>
           </div>
@@ -343,7 +345,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
           display: "flex", alignItems: "center", justifyContent: "flex-start",
           padding: "0 0 0 24px",
         }}>
-          <ToolbarButton onClick={() => setCollapsed(false)} title="展开面板">
+          <ToolbarButton onClick={() => { setCollapsed(false); onCollapsedChange?.(false); }} title="展开面板">
             <IconSidebarPanel />
           </ToolbarButton>
         </div>
@@ -358,7 +360,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         height: collapsed ? 0 : "auto",
         overflow: "hidden",
       }}>
-        <button style={{
+        <button onClick={onNewTask} style={{
           width: "100%", height: 44, borderRadius: 100,
           border: "1px solid transparent",
           background: `${C.btnGradient} padding-box, ${C.btnBorderGradient} border-box`,

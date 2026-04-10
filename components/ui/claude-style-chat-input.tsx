@@ -45,10 +45,10 @@ const DEFAULT_CHAT_INPUT_MOTION_CONFIG = {
   borderRotateDuration: 5,
   glowBreatheDuration: 5,
   glowOpacity: 0.8,
-  glowInsetRest: 3,
+  glowInsetRest: 6,
   glowInsetPeak: 4,
-  glowBlurRest: 8,
-  glowBlurPeak: 24,
+  glowBlurRest: 10,
+  glowBlurPeak: 18,
   activeMinHeight: 72,
 } as const;
 

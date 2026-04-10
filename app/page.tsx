@@ -98,6 +98,7 @@ export default function Home() {
   const [userMessage, setUserMessage] = useState<string>("");
   const [conversationTitle, setConversationTitle] = useState<string>("");
   const [artifactsPanelOpen, setArtifactsPanelOpen] = useState(false);
+  const [isSecondaryCollapsed, setIsSecondaryCollapsed] = useState(false);
   // 对话流分步揭示：0=用户气泡, 1=思考摘要, 2=Plan卡片
   const [revealStep, setRevealStep] = useState(0);
   // 卡片参数配置
@@ -236,7 +237,7 @@ export default function Home() {
       <Sidebar activeId={targetView} onMenuClick={handleMenuClick} />
 
       {/* ── 二级导航面板 ── */}
-      {targetView === "dataclaw" && <SecondaryNav />}
+      {targetView === "dataclaw" && <SecondaryNav onCollapsedChange={setIsSecondaryCollapsed} onNewTask={handleNewChat} />}
 
       {/* ── 右侧内容区 ── */}
       <div style={{ flex: 1, minWidth: 0, height: "100vh", overflow: "hidden", position: "relative" }}>
@@ -345,7 +346,7 @@ export default function Home() {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-end",
-              padding: "0 20px",
+              padding: isSecondaryCollapsed ? "0" : "0 0 0 20px",
               position: "relative",
               backgroundColor: C.rightBg,
             }}
@@ -353,6 +354,7 @@ export default function Home() {
             <div style={{ width: "100%" }}>
               <ChatTitlebar
                 title={conversationTitle}
+                showNewChat={isSecondaryCollapsed}
                 onNewChat={handleNewChat}
                 onArtifacts={() => setArtifactsPanelOpen(v => !v)}
               />
@@ -407,7 +409,8 @@ export default function Home() {
           <div style={{
             width: "100%",
             maxWidth: 880,
-            padding: chatPhase === "welcome" ? "0 0 24px" : "24px 0 120px",
+            boxSizing: "border-box",
+            padding: chatPhase === "welcome" ? "0 24px 24px" : "24px 24px 120px",
           }}>
             <AnimatePresence mode="wait">
               {chatPhase === "welcome" ? (
