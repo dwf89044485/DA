@@ -153,8 +153,8 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
     if (contentTimer.current) { clearTimeout(contentTimer.current); contentTimer.current = null; }
     leaveTimer.current = setTimeout(() => {
       setCollapsed(true); // 立即开始宽度收窄动画
-      // 内容切换延迟到动画结束后
-      contentTimer.current = setTimeout(() => setShowCollapsed(true), COLLAPSE_DURATION * 1000);
+      // 在动画接近尾声时切换内容，让内容变化和最后一点收缩同时发生
+      contentTimer.current = setTimeout(() => setShowCollapsed(true), COLLAPSE_DURATION * 800);
     }, HOVER_LEAVE_DELAY);
   }, []);
 
