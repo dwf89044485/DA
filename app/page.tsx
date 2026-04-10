@@ -8,6 +8,7 @@ import { AgentFanCards, type AgentCardPreviewState, type FanCardsConfig, DEFAULT
 import MotionPanel, { MotionSelectButton, type MotionMode } from "@/components/ui/motion-panel";
 import MotionTargetOverlay from "@/components/ui/motion-target-overlay";
 import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
+import SecondaryNav from "@/components/ui/secondary-nav";
 import StudioView from "@/components/ui/studio-view";
 import AiRunningBubble from "@/components/ui/ai-running-bubble";
 import ChatTitlebar from "@/components/ui/chat-titlebar";
@@ -240,6 +241,9 @@ export default function Home() {
 
       {/* ── 左侧导航 ── */}
       <Sidebar activeId={targetView} onMenuClick={handleMenuClick} />
+
+      {/* ── 二级导航面板 ── */}
+      {targetView === "dataclaw" && <SecondaryNav />}
 
       {/* ── 右侧内容区 ── */}
       <div style={{ flex: 1, minWidth: 0, height: "100vh", overflow: "hidden", position: "relative" }}>

@@ -28,9 +28,9 @@ import {
 } from "@/components/ui/wedata-icons";
 
 // ── 本地资产路径（从 Figma 导出并保存到 public/logo/）
-const LOGO_OTTER_URL   = "/logo/otter.png";
-const LOGO_TEXT_URL    = "/logo/wedata-text.png";
-const SIDEBAR_ICON_URL = "/logo/sidebar-toggle.png";
+const LOGO_OTTER_URL   = "/logo/otter.svg";
+const LOGO_TEXT_URL    = "/logo/wedata-text.svg";
+const SIDEBAR_ICON_URL = "/logo/sidebar-toggle.svg";
 
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
@@ -130,7 +130,7 @@ const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
 // ── Sidebar ────────────────────────────────────────────────────
 export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <motion.div
