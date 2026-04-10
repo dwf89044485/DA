@@ -414,89 +414,107 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
           >
             {/* 左侧工具区：始终可见 */}
             <div style={{ display: "flex", alignItems: "center" }}>
+              {/* + 按钮 + 分隔线 + Agent 下拉 */}
               <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                {/* + 按钮 */}
+                {/* + 按钮 + 分隔线 */}
                 <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                    type="button"
-                    aria-label="添加附件"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: 28,
-                      height: 28,
-                      padding: "4px 12px",
-                      borderRadius: 12,
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      color: "rgba(0,0,0,0.65)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img src="/icons/add.svg" alt="" style={{ width: 16, height: 16 }} />
-                  </button>
-
+                  {/* 左侧工具：add 按钮 */}
+                  <div style={{ display: "flex", gap: 4, height: 28, alignItems: "center", borderRadius: 16, flexShrink: 0 }}>
+                    <div
+                      onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        padding: "4px 12px",
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                        <img src="/icons/add.svg" alt="" style={{
+                          position: "absolute",
+                          top: "16.67%",
+                          left: "16.67%",
+                          width: "66.67%",
+                          height: "66.67%",
+                        }} />
+                      </div>
+                    </div>
+                  </div>
                   {/* 竖线分隔符 */}
-                  <div style={{ width: 1, height: 12, backgroundColor: "#E8EAED", flexShrink: 0 }} />
+                  <div style={{ position: "relative", width: 0, height: 12, flexShrink: 0 }}>
+                    <div style={{
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      left: -0.5,
+                      right: -0.5,
+                      backgroundColor: "#E8EAED",
+                    }} />
+                  </div>
                 </div>
 
                 {/* Agent 下拉按钮 */}
-                <button
-                  type="button"
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    height: 28,
-                    paddingLeft: 12,
-                    paddingRight: 2,
-                    paddingTop: 4,
-                    paddingBottom: 4,
-                    borderRadius: 12,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                  }}
-                >
-                  <img src="/icons/agent.svg" alt="" style={{ width: 16, height: 16 }} />
-                  <span style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    lineHeight: "22px",
-                    color: "rgba(0,0,0,0.9)",
-                    whiteSpace: "nowrap",
-                    fontFamily: FONT,
-                  }}>
-                    Agent
-                  </span>
-                  <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
-                </button>
+                <div style={{ display: "flex", gap: 4, height: 28, alignItems: "center", borderRadius: 16, flexShrink: 0, width: 98, justifyContent: "center" }}>
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      display: "flex",
+                      gap: 4,
+                      height: "100%",
+                      alignItems: "center",
+                      paddingLeft: 12,
+                      paddingRight: 2,
+                      paddingTop: 4,
+                      paddingBottom: 4,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0, overflow: "hidden" }}>
+                      <img src="/icons/agent.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                    </div>
+                    <span style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      lineHeight: "22px",
+                      color: "rgba(0,0,0,0.9)",
+                      whiteSpace: "nowrap",
+                      fontFamily: FONT,
+                    }}>
+                      Agent
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* 模型选择器 */}
-              <button
-                type="button"
+              <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   display: "flex",
-                  alignItems: "center",
                   gap: 4,
                   height: 32,
+                  alignItems: "center",
                   paddingLeft: 12,
                   paddingRight: 12,
                   borderRadius: 20,
-                  border: "none",
-                  background: "transparent",
                   cursor: "pointer",
                   flexShrink: 0,
                 }}
               >
-                <img src="/icons/claude-logo.svg" alt="" style={{ width: 16, height: 16 }} />
+                <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                  <img src="/icons/claude-logo.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                </div>
                 <span style={{
                   fontSize: 14,
                   fontWeight: 500,
@@ -507,9 +525,12 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 }}>
                   Claude-Opus-4.6
                 </span>
-                <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
-              </button>
-
+                <div style={{ position: "relative", width: 14, height: 14, flexShrink: 0 }}>
+                  <div style={{ position: "absolute", top: "33.69%", right: "21.19%", bottom: "31.61%", left: "21.19%" }}>
+                    <img src="/icons/chevron-down.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* 右侧：发送按钮 */}
