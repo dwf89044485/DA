@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   IconCatalog,
@@ -789,6 +789,19 @@ export function AgentFanCards({
   previewState?: AgentCardPreviewState;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = (i: number) => {
+    if (previewState) return;
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => setHoveredIdx(i), 300);
+  };
+
+  const handleMouseLeave = () => {
+    if (previewState) return;
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    setHoveredIdx(null);
+  };
 
   const activeHoveredIdx =
     previewState === "hover" ? 1 : previewState === "default" ? null : hoveredIdx;
@@ -839,8 +852,8 @@ export function AgentFanCards({
                 y: { duration: config.hoverTransitionDuration, ease: EASE },
                 scale: { duration: config.hoverTransitionDuration, ease: EASE },
               }}
-              onMouseEnter={() => !previewState && setHoveredIdx(i)}
-              onMouseLeave={() => !previewState && setHoveredIdx(null)}
+              onMouseEnter={() => handleMouseEnter(i)}
+              onMouseLeave={handleMouseLeave}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
