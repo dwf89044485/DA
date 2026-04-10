@@ -141,8 +141,8 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
   ],
   states: [
     { value: "free", label: "不锁定" },
-    { value: "default", label: "默认" },
     { value: "hover", label: "Hover" },
+    { value: "default", label: "默认" },
   ],
   defaultState: "free",
   defaultConfig: DEFAULT_FAN_CONFIG as unknown as Record<string, number>,
