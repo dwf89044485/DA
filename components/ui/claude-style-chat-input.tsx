@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
-import { Plus, X, FileText, Loader2, FolderOpen, ChevronDown, Code } from "lucide-react";
+import { Plus, X, FileText, Loader2, ChevronDown } from "lucide-react";
 import type { MotionTargetDef } from "@/components/ui/motion-panel";
 
 // ── 实心纸飞机 SVG（对齐 Figma btn-send）────────────────────
@@ -181,7 +181,6 @@ interface ChatInputProps {
   onRemoveAgent?: () => void;
   config?: Record<string, number>;
   previewState?: ChatInputPreviewState;
-  workspace?: string;
 }
 
 export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ClaudeChatInput({
@@ -193,7 +192,6 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   onRemoveAgent,
   config = CHAT_INPUT_MOTION.defaultConfig,
   previewState,
-  workspace = "junyangliu",
 }, ref) {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -329,46 +327,6 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             overflowX: "hidden",
           }}
         >
-          {/* ── 顶部：工作空间选择器 ── */}
-          <div style={{
-            display: "flex",
-            alignItems: "flex-start",
-            minHeight: 24,
-            paddingLeft: 16,
-            paddingRight: 24,
-            paddingBottom: 16,
-          }}>
-            <button
-              type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                height: 28,
-                paddingLeft: 8,
-                paddingRight: 6,
-                borderRadius: 12,
-                backgroundColor: "#F2F4F8",
-                border: "none",
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-            >
-              <FolderOpen style={{ width: 16, height: 16, color: "rgba(0,0,0,0.65)" }} />
-              <span style={{
-                fontSize: 14,
-                fontWeight: 500,
-                lineHeight: "22px",
-                color: "rgba(0,0,0,0.9)",
-                whiteSpace: "nowrap",
-                fontFamily: FONT,
-              }}>
-                {workspace}
-              </span>
-              <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
-            </button>
-          </div>
-
           {/* 文件预览区 */}
           {files.length > 0 && (
             <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 24px 12px" }}>
@@ -572,39 +530,6 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
               </button>
 
-              {/* Skills 下拉按钮 */}
-              <button
-                type="button"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  height: 28,
-                  paddingLeft: 12,
-                  paddingRight: 2,
-                  paddingTop: 4,
-                  paddingBottom: 4,
-                  borderRadius: 12,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                <Code style={{ width: 16, height: 16, color: "rgba(0,0,0,0.65)" }} />
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  lineHeight: "22px",
-                  color: "rgba(0,0,0,0.9)",
-                  whiteSpace: "nowrap",
-                  fontFamily: FONT,
-                }}>
-                  skills
-                </span>
-                <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
-              </button>
             </div>
 
             {/* 右侧：发送按钮 */}
