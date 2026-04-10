@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { IconData } from "./wedata-icons";
+import { IconAiNewChat, IconData } from "./wedata-icons";
 
 // ── Design DNA tokens ────────────────────────────────────────────
 const TEXT_PRIMARY = "rgba(0,0,0,0.9)";
@@ -15,12 +15,14 @@ const ICON_SIZE = 16;
 // ── Types ────────────────────────────────────────────────────────
 interface ChatTitlebarProps {
   title?: string;
+  onNewChat?: () => void;
   onArtifacts?: () => void;
 }
 
 // ── Component ────────────────────────────────────────────────────
 export default function ChatTitlebar({
   title,
+  onNewChat,
   onArtifacts,
 }: ChatTitlebarProps) {
   return (
@@ -28,13 +30,17 @@ export default function ChatTitlebar({
       style={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
         width: "100%",
         height: "100%",
-        padding: "20px 16px",
+        padding: "20px 16px 20px 0",
         fontFamily: FONT_HEADING,
       }}
     >
+      {/* ── Left: 新建对话 ── */}
+      <ActionButton onClick={onNewChat} label="新建对话">
+        <IconAiNewChat size={ICON_SIZE} color={ICON_COLOR} />
+      </ActionButton>
+
       {/* ── Center: Title (flex-1, text-center) ── */}
       <p
         style={{
@@ -54,20 +60,10 @@ export default function ChatTitlebar({
         {title}
       </p>
 
-      {/* ── Right: Action buttons ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          flexShrink: 0,
-        }}
-      >
-        {/* 产物 — 常显 */}
-        <ActionButton onClick={onArtifacts} label="产物">
-          <IconData size={ICON_SIZE} color={ICON_COLOR} />
-        </ActionButton>
-      </div>
+      {/* ── Right: 产物 ── */}
+      <ActionButton onClick={onArtifacts} label="产物">
+        <IconData size={ICON_SIZE} color={ICON_COLOR} />
+      </ActionButton>
     </div>
   );
 }
@@ -77,12 +73,10 @@ function ActionButton({
   children,
   onClick,
   label,
-  style: extraStyle,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   label: string;
-  style?: React.CSSProperties;
 }) {
   const [btnHovered, setBtnHovered] = React.useState(false);
 
@@ -104,8 +98,8 @@ function ActionButton({
         background: btnHovered ? HOVER_ICON_BTN : "transparent",
         cursor: "pointer",
         padding: 0,
+        flexShrink: 0,
         transition: "background 0.15s ease",
-        ...extraStyle,
       }}
     >
       {children}

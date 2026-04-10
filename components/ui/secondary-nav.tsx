@@ -11,13 +11,14 @@ const C = {
   bg: "#F9FAFC",
   borderColor: "#E6E9EF",
   textPrimary: "rgba(0,0,0,0.9)",
+  textSecondary: "rgba(0,0,0,0.7)",
   textTertiary: "rgba(0,0,0,0.5)",
   hoverBg: "#ECEEF2",
   badgeBg: "#F64041",
   badgeText: "rgba(255,255,255,0.9)",
-  btnBorder: "#EDF0F5",
+  btnBorderGradient: "linear-gradient(180deg, #EDF0F5 0%, #D6DBE3 100%)",
   btnShadow: "0px 2px 4px -2px rgba(0,0,0,0.12)",
-  btnGradient: "linear-gradient(180deg, #FFFFFF 4.3%, #FAFBFC 56.93%)",
+  btnGradient: "linear-gradient(180deg, #FFFFFF 4%, #FAFBFC 57%)",
 } as const;
 
 // ── Animation constants ───────────────────────────────────────
@@ -46,7 +47,7 @@ function IconLoading({ size = 16 }: { size?: number }) {
 function IconPending({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="8" cy="8" r="5" stroke="#FF8800" strokeWidth="1.2" strokeDasharray="3 2.5" fill="none"/>
+      <circle cx="8" cy="8" r="5" stroke="#FF7800" strokeWidth="1.2" strokeDasharray="3 2.5" fill="none"/>
     </svg>
   );
 }
@@ -116,12 +117,16 @@ function StatusIcon({ status }: { status: TaskStatus }) {
 }
 
 // ── Section header ─────────────────────────────────────────────
-function SectionHeader({ label }: { label: string }) {
+function SectionHeader({ label, withTopBorder = false }: { label: string; withTopBorder?: boolean }) {
   return (
-    <div style={{ padding: "24px 12px 8px", width: "100%" }}>
+    <div style={{
+      padding: "24px 12px 8px",
+      width: "100%",
+      borderTop: withTopBorder ? `1px solid ${C.borderColor}` : "none",
+    }}>
       <span style={{
-        fontFamily: FONT, fontSize: 12, fontWeight: 400,
-        lineHeight: "20px", color: C.textTertiary,
+        fontFamily: FONT, fontSize: 12, fontWeight: 600,
+        lineHeight: "20px", color: C.textSecondary,
       }}>
         {label}
       </span>
@@ -142,7 +147,7 @@ function TaskItem({ status, title, indented }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         height: 34, display: "flex", alignItems: "center",
-        paddingLeft: indented ? 36 : 12, paddingRight: 12,
+        paddingLeft: 12, paddingRight: 12,
         borderRadius: 20, cursor: "pointer",
         backgroundColor: hovered ? C.hoverBg : "transparent",
         transition: "background 100ms", width: "100%",
@@ -181,7 +186,7 @@ function MoreLink({ count }: { count: number }) {
         fontFamily: FONT, fontSize: 12, fontWeight: 400,
         lineHeight: "20px", color: C.textTertiary,
       }}>
-        更多({count})
+        显示更多({count})
       </span>
     </div>
   );
@@ -222,7 +227,11 @@ function FolderItem({ name, expanded, onToggle, children }: {
           </div>
         </div>
       </div>
-      {expanded && children}
+      {expanded && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 0 12px" }}>
+          {children}
+        </div>
+      )}
     </>
   );
 }
@@ -351,7 +360,8 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
       }}>
         <button style={{
           width: "100%", height: 44, borderRadius: 100,
-          border: `1px solid ${C.btnBorder}`, background: C.btnGradient,
+          border: "1px solid transparent",
+          background: `${C.btnGradient} padding-box, ${C.btnBorderGradient} border-box`,
           boxShadow: C.btnShadow, display: "flex", alignItems: "center",
           justifyContent: "center", gap: 8, cursor: "pointer",
           padding: "8px 20px", outline: "none",
@@ -376,32 +386,36 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         overflowY: "auto", overflowX: "hidden",
         padding: collapsed ? "0" : "0 12px", scrollbarWidth: "none",
       }}>
-        <SectionHeader label="最近任务" />
-        <TaskItem status="loading" title="ETL 开发_订单数据同步流程项目" />
-        <TaskItem status="pending" title="统计近 7 天各渠道用户支付金额，按天汇总，输出可直接使用的 SQL 与结果" />
-        <TaskItem status="check" title="接入业务库【订单表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
-        <TaskItem status="check" title="接入业务库【用户表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
-        <TaskItem status="check" title="猫眼_客户留存指标分析" />
-        <TaskItem status="check" title="T+1调度工作流编排" />
-        <MoreLink count={7} />
+        <div style={{ paddingBottom: 24 }}>
+          <SectionHeader label="最近任务" />
+          <TaskItem status="loading" title="ETL 开发_订单数据同步流程项目" />
+          <TaskItem status="pending" title="统计近 7 天各渠道用户支付金额，按天汇总，输出可直接使用的 SQL 与结果" />
+          <TaskItem status="check" title="接入业务库【订单表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
+          <TaskItem status="check" title="接入业务库【用户表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
+          <TaskItem status="check" title="猫眼_客户留存指标分析" />
+          <TaskItem status="check" title="T+1调度工作流编排" />
+          <MoreLink count={10} />
+        </div>
 
-        <SectionHeader label="文件空间" />
-        <FolderItem name="junyangliu_dev" expanded={folder1Open} onToggle={() => setFolder1Open(v => !v)}>
-          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
-          <TaskItem indented status="pending" title="用户复购率指标开发" />
-          <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
-          <TaskItem indented status="check" title="零售业务_月度库存健康度指标开发" />
-        </FolderItem>
+        <SectionHeader label="文件空间" withTopBorder />
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <FolderItem name="junyangliu_dev" expanded={folder1Open} onToggle={() => setFolder1Open(v => !v)}>
+            <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
+            <TaskItem indented status="pending" title="用户复购率指标开发" />
+            <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
+            <TaskItem indented status="check" title="零售业务_月度库存健康度指标开发" />
+          </FolderItem>
 
-        <FolderItem name="junyangliu_test" expanded={folder2Open} onToggle={() => setFolder2Open(v => !v)}>
-          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
-          <TaskItem indented status="pending" title="用户复购率指标开发" />
-          <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
-        </FolderItem>
+          <FolderItem name="junyangliu_test" expanded={folder2Open} onToggle={() => setFolder2Open(v => !v)}>
+            <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
+            <TaskItem indented status="pending" title="用户复购率指标开发" />
+            <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
+          </FolderItem>
 
-        <FolderItem name="junyangliu001" expanded={false} onToggle={() => {}} />
-        <FolderItem name="junyangliu002" expanded={false} onToggle={() => {}} />
-        <FolderItem name="junyangliu003" expanded={false} onToggle={() => {}} />
+          <FolderItem name="junyangliu001" expanded={false} onToggle={() => {}} />
+          <FolderItem name="junyangliu002" expanded={false} onToggle={() => {}} />
+          <FolderItem name="junyangliu003" expanded={false} onToggle={() => {}} />
+        </div>
       </div>
     </motion.div>
   );

@@ -76,14 +76,14 @@ export interface FanCardsConfig {
 
 export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   // 扇形布局
-  overlapX: -20,
-  rotateOuter: 11,
-  outerCardOffset: 38,
+  overlapX: -18,
+  rotateOuter: 8,
+  outerCardOffset: 22,
   // Hover 悬浮
-  dist1X: 40,
-  hoverHeight: 0.30,
+  dist1X: 12,
+  hoverHeight: 0.35,
   yFactor: 40,
-  scaleFactor: 0.30,
+  scaleFactor: 0.24,
   // Hover 投影
   shadowBlur1Range: 64,
   shadowY1Range: 40,
@@ -98,11 +98,11 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   // 信息区毛玻璃
   infoFromOpacity: 0.90,
   infoToOpacity: 0.80,
-  infoBlur: 13,
+  infoBlur: 16,
   infoSaturate: 90,
   // 动画
   fanTransitionDuration: 0.60,
-  hoverTransitionDuration: 0.30,
+  hoverTransitionDuration: 0.60,
 };
 
 // ── Agent Card Motion Schema ────────────────────────────────────
@@ -259,7 +259,7 @@ export default function AgentCard({
         position: "relative",
       }}
     >
-      {/* ── 渐变边框层（设计稿：上#E6E9EF → 下#FFFFFF，1px inside） */}
+      {/* ── 渐变边框层（上#E6E9EF → 下#FFFFFF，1px inside） */}
       <div
         style={{
           position: "absolute",
@@ -316,155 +316,160 @@ export default function AgentCard({
           paddingRight: 24,
         }}
       >
-        {/* ── 顶部：名字+描述区 ──────────────────────── */}
-        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: hovered ? 12 : 8 }}>
-          {/* 名字 */}
-          <div>
-          {/* 英文名 */}
-          <p
-            style={{
-              fontFamily: FONT_EN,
-              fontSize: 16,
-              lineHeight: "24px",
-              fontWeight: 500,
-              color: nameColor ?? T.blue,
-              margin: 0,
-            }}
-          >
-            {name}
-          </p>
-          {/* 中文头衔 — hover 时字号变大 */}
-          <motion.p
-            initial={{ fontSize: 18, lineHeight: "26px" }}
-            animate={{
-              fontSize: hovered ? 20 : 18,
-              lineHeight: hovered ? "28px" : "26px",
-            }}
-            transition={transition}
-            style={{
-              fontFamily: FONT,
-              fontWeight: 600,
-              color: T.solid,
-              margin: 0,
-            }}
-          >
-            {title}
-          </motion.p>
-          </div>
-
-        {/* ── 标签/描述 切换区 — 同一位置，交叉淡入 ────── */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          {/* 默认：4 个技能标签 */}
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: hovered ? 0 : 1 }}
-            transition={transition}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "auto auto",
-              justifyContent: "start",
-              gap: 4,
-              // hover 时不占空间、不可交互
-              ...(hovered
-                ? { position: "absolute", top: 0, left: 0, pointerEvents: "none" as const }
-                : {}),
-            }}
-          >
-            {skills.map((skill, i) => (
-              <div
-                key={i}
+        {/* ── 上半区：基本信息 + Stats ──────────────────── */}
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* 基本信息：名字 + 描述/标签 */}
+          <div style={{ display: "flex", flexDirection: "column", gap: hovered ? 4 : 8 }}>
+            {/* 名字 */}
+            <div>
+              {/* 英文名 — hover 时字号变大 */}
+              <motion.p
+                initial={{ fontSize: 16, lineHeight: "24px" }}
+                animate={{
+                  fontSize: hovered ? 20 : 16,
+                  lineHeight: "24px",
+                }}
+                transition={transition}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  height: 28,
-                  paddingLeft: 10,
-                  paddingRight: 12,
-                  borderRadius: 100,
-                  background: "rgba(230,233,240,0.6)",
+                  fontFamily: FONT_EN,
+                  fontWeight: 500,
+                  color: nameColor ?? T.blue,
+                  margin: 0,
                 }}
               >
-                <span style={{ flexShrink: 0, display: "flex", width: 14, height: 14 }}>
-                  {skill.icon}
-                </span>
-                <span
+                {name}
+              </motion.p>
+              {/* 中文头衔 — hover 时字号变大 */}
+              <motion.p
+                initial={{ fontSize: 18, lineHeight: "26px" }}
+                animate={{
+                  fontSize: hovered ? 20 : 18,
+                  lineHeight: hovered ? "28px" : "26px",
+                }}
+                transition={transition}
+                style={{
+                  fontFamily: FONT,
+                  fontWeight: 600,
+                  color: T.solid,
+                  margin: 0,
+                }}
+              >
+                {title}
+              </motion.p>
+            </div>
+
+            {/* ── 标签/描述 切换区 — 同一位置，交叉淡入 ── */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              {/* 默认：4 个技能标签 */}
+              <motion.div
+                initial={{ opacity: 1 }}
+                animate={{ opacity: hovered ? 0 : 1 }}
+                transition={transition}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto auto",
+                  justifyContent: "start",
+                  gap: 4,
+                  ...(hovered
+                    ? { position: "absolute", top: 0, left: 0, pointerEvents: "none" as const }
+                    : {}),
+                }}
+              >
+                {skills.map((skill, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                      height: 28,
+                      paddingLeft: 10,
+                      paddingRight: 12,
+                      borderRadius: 100,
+                      background: "rgba(230,233,240,0.6)",
+                    }}
+                  >
+                    <span style={{ flexShrink: 0, display: "flex", width: 14, height: 14 }}>
+                      {skill.icon}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 400,
+                        lineHeight: "20px",
+                        color: T.secondary,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {skill.label}
+                    </span>
+                  </div>
+                ))}
+              </motion.div>
+
+              {/* hover：描述文字 */}
+              {description && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: hovered ? 1 : 0 }}
+                  transition={transition}
                   style={{
                     fontSize: 12,
-                    fontWeight: 400,
                     lineHeight: "20px",
                     color: T.secondary,
-                    whiteSpace: "nowrap",
+                    margin: 0,
+                    textAlign: "justify",
+                    height: 80,
+                    overflow: "hidden",
+                    ...(!hovered
+                      ? { position: "absolute", top: 0, left: 0, right: 0, pointerEvents: "none" as const }
+                      : {}),
                   }}
                 >
-                  {skill.label}
-                </span>
-              </div>
-            ))}
-          </motion.div>
+                  {description}
+                </motion.p>
+              )}
+            </div>
+          </div>
 
-          {/* hover：描述文字 */}
-          {description && (
-            <motion.p
+          {/* Stats */}
+          {stats && stats.length > 0 && (
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: hovered ? 1 : 0 }}
               transition={transition}
-              style={{
-                fontSize: 12,
-                lineHeight: "20px",
-                color: T.secondary,
-                margin: 0,
-                textAlign: "justify",
-                // 默认时不占空间、不可交互
-                ...(!hovered
-                  ? { position: "absolute", top: 0, left: 0, right: 0, pointerEvents: "none" as const }
-                  : {}),
-              }}
+              style={{ display: "flex", gap: 12, flexShrink: 0 }}
             >
-              {description}
-            </motion.p>
+              {stats.map((stat, i) => (
+                <div key={i} style={{ flex: 1 }}>
+                  <p
+                    style={{
+                      fontFamily: FONT_EN,
+                      fontSize: 20,
+                      lineHeight: "24px",
+                      fontWeight: 400,
+                      color: T.primary,
+                      margin: 0,
+                    }}
+                  >
+                    {stat.value}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 12,
+                      lineHeight: "20px",
+                      color: T.secondary,
+                      margin: 0,
+                    }}
+                  >
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </motion.div>
           )}
         </div>
-        </div>
-
-        {/* ── 以下内容：默认 opacity 0，hover 上浮后显现 ── */}
-
-        {/* ③ 数据指标 */}
-        {stats && stats.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: hovered ? 1 : 0 }}
-            transition={transition}
-            style={{ display: "flex", gap: 12, flexShrink: 0 }}
-          >
-            {stats.map((stat, i) => (
-              <div key={i} style={{ flex: 1 }}>
-                <p
-                  style={{
-                    fontFamily: FONT_EN,
-                    fontSize: 20,
-                    lineHeight: "24px",
-                    fontWeight: 400,
-                    color: T.primary,
-                    margin: 0,
-                  }}
-                >
-                  {stat.value}
-                </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    lineHeight: "20px",
-                    color: T.secondary,
-                    margin: 0,
-                  }}
-                >
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </motion.div>
-        )}
 
         {/* ④ 分割线 */}
         <motion.div
@@ -517,11 +522,11 @@ export default function AgentCard({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    height: 28,
-                    paddingLeft: 12,
-                    paddingRight: 8,
+                    height: 32,
+                    paddingLeft: 16,
+                    paddingRight: 16,
                     borderRadius: 100,
-                    background: "rgba(255,255,255,0.5)",
+                    background: "rgba(0,0,0,0.04)",
                     cursor: onSkillClick ? "pointer" : "default",
                   }}
                 >
@@ -555,11 +560,11 @@ export const RIGEL_DATA: AgentCardProps = {
   avatar: "/agents/1a.png",
   summonText: "今天想开发什么数仓？",
   description:
-    "擅长数仓建模与全链路工程开发，把业务需求转化为可落地的数据架构，调度、运维、异常处理一手包办",
+    "擅长数仓建模与全链路工程开发，能精准把业务需求转化为可落地的数据架构方案，从任务调度、日常运维到异常诊断与修复，数据工程的全流程一手包办。",
   stats: [
-    { value: "30+", label: "支持数据源" },
-    { value: "3min", label: "平均完成时长" },
-    { value: "99.4%", label: "任务成功率" },
+    { value: "40+", label: "支持建模模式" },
+    { value: "80%", label: "减少重复开发" },
+    { value: "99.2%", label: "调度成功率" },
   ],
   skills: [
     { label: "需求转数据模型", icon: <IconCatalog size={14} color={ic} /> },
@@ -568,12 +573,12 @@ export const RIGEL_DATA: AgentCardProps = {
     { label: "检测管道异常", icon: <IconOps size={14} color={ic} /> },
   ],
   expandedSkills: [
-    "接入数据源",
-    "需求转数据模型",
-    "优化任务性能",
-    "自动数仓开发",
-    "生成调度方案",
+    "需求一键转模型",
+    "自动生成调度方案",
+    "自动开发数仓",
     "检测管道异常",
+    "接入各类数据源",
+    "优化任务性能",
   ],
 };
 

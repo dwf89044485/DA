@@ -7,7 +7,7 @@ import ClaudeChatInput, { CHAT_INPUT_MOTION, type ChatInputHandle, type ChatInpu
 import { AgentFanCards, type AgentCardPreviewState, type FanCardsConfig, DEFAULT_FAN_CONFIG, AGENT_CARD_MOTION } from "@/components/ui/agent-card";
 import MotionPanel, { MotionSelectButton, type MotionMode } from "@/components/ui/motion-panel";
 import MotionTargetOverlay from "@/components/ui/motion-target-overlay";
-import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
+import { IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
 import SecondaryNav from "@/components/ui/secondary-nav";
 import StudioView from "@/components/ui/studio-view";
 import AiRunningBubble from "@/components/ui/ai-running-bubble";
@@ -66,10 +66,7 @@ const SKILL_ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 const C = {
-  rightBg:   "#F9FAFC",
-  titlebar:  "transparent",
-  textTertiary: "rgba(0,0,0,0.5)",
-  iconBtn:   "rgba(0,0,0,0.05)",
+  rightBg: "#F9FAFC",
 } as const;
 
 const BUBBLE_TARGET = {
@@ -336,64 +333,32 @@ export default function Home() {
           }}
         >
         {/* ── 聊天主区域（flex-1 column） ── */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* ── 顶部标题栏 84px ── */}
-        <div style={{
-          height: 84,
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          padding: "0 20px",
-          position: "relative",
-          backgroundColor: C.rightBg,
-        }}>
-          <AnimatePresence mode="wait">
-            {chatPhase === "welcome" ? (
-              <motion.div
-                key="welcome-header"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: EASE }}
-                style={{ display: "flex", alignItems: "center" }}
-              >
-                {/* 历史记录按钮 */}
-                <button style={{
-                  width: 44, height: 44,
-                  borderRadius: 100,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "background 100ms",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = C.iconBtn)}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <IconAiHistory size={20} color={C.textTertiary} />
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="chat-header"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: EASE }}
-                style={{ width: "100%" }}
-              >
-                <ChatTitlebar
-                  title={conversationTitle}
-                  onArtifacts={() => setArtifactsPanelOpen(v => !v)}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+        {chatPhase === "conversation" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            style={{
+              height: 84,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              padding: "0 20px",
+              position: "relative",
+              backgroundColor: C.rightBg,
+            }}
+          >
+            <div style={{ width: "100%" }}>
+              <ChatTitlebar
+                title={conversationTitle}
+                onNewChat={handleNewChat}
+                onArtifacts={() => setArtifactsPanelOpen(v => !v)}
+              />
+            </div>
+          </motion.div>
+        )}
         {/* ── 中间内容区（可滚动） ── */}
         <div style={{
           flex: 1,

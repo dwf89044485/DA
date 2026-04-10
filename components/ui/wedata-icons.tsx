@@ -310,3 +310,30 @@ export function IconArrowRightUp({ size = 16, color = "currentColor", style, cla
     </svg>
   );
 }
+
+// ── 左箭头 (Chevron left) ───────────────────────────────────────
+export function IconChevronLeft({ size = 16, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <path d="M10 4L6 8L10 12" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// ── 下箭头 (Chevron down) ───────────────────────────────────────
+export function IconChevronDown({ size = 16, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// ── 勾选 (Check) ────────────────────────────────────────────────
+export function IconCheck({ size = 16, color = "currentColor", style, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
+      <path d="M3 8.5L6.5 12L13 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}

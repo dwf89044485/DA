@@ -42,14 +42,14 @@ export interface AgentChip {
 }
 
 const DEFAULT_CHAT_INPUT_MOTION_CONFIG = {
-  borderRotateDuration: 4,
+  borderRotateDuration: 5,
   glowBreatheDuration: 5,
-  glowOpacity: 0.6,
-  glowInsetRest: -6,
-  glowInsetPeak: -10,
-  glowBlurRest: 22,
-  glowBlurPeak: 26,
-  activeMinHeight: 88,
+  glowOpacity: 0.8,
+  glowInsetRest: 3,
+  glowInsetPeak: 4,
+  glowBlurRest: 8,
+  glowBlurPeak: 24,
+  activeMinHeight: 72,
 } as const;
 
 export const CHAT_INPUT_MOTION: MotionTargetDef = {
