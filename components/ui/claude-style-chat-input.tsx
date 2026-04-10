@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
-import { Plus, X, FileText, Loader2 } from "lucide-react";
+import { Plus, X, FileText, Loader2, FolderOpen, ChevronDown, Code } from "lucide-react";
 import type { MotionTargetDef } from "@/components/ui/motion-panel";
 
 // ── 实心纸飞机 SVG（对齐 Figma btn-send）────────────────────
@@ -12,6 +12,26 @@ function SendIcon({ size = 16, color = "#FFFFFF" }: { size?: number; color?: str
         d="M14.2 1.8C14.5 1.5 14.9 1.8 14.8 2.2L12.2 13.6C12.1 14 11.7 14.1 11.4 13.9L8.2 11.6L6.6 13.3C6.3 13.6 5.8 13.4 5.8 13V10.4L12.4 3.4C12.5 3.3 12.3 3.1 12.2 3.2L4.2 9.2L1.6 7.8C1.2 7.6 1.2 7.1 1.6 6.9L14.2 1.8Z"
         fill={color}
       />
+    </svg>
+  );
+}
+
+// ── Agent 图标 SVG ─────────────────────────────────────────────
+function AgentIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 1C4.7 1 2 3.2 2 6c0 1.4.7 2.7 1.8 3.6-.1.8-.5 1.5-1 2-.2.2-.1.5.1.6.1.1.2.1.3.1 1.1 0 2.1-.4 2.9-1.1.6.2 1.3.3 1.9.3 3.3 0 6-2.2 6-5s-2.7-5-6-5zM5.5 7a1 1 0 110-2 1 1 0 010 2zm5 0a1 1 0 110-2 1 1 0 010 2z" fill="currentColor"/>
+    </svg>
+  );
+}
+
+// ── Claude Logo SVG ────────────────────────────────────────────
+function ClaudeLogo({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="8" r="7" fill="#F9F0E7"/>
+      <path d="M5.5 6.5L8 4l2.5 2.5M5.5 9.5L8 12l2.5-2.5" stroke="#D97757" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="8" cy="8" r="1.2" fill="#D97757"/>
     </svg>
   );
 }
@@ -161,6 +181,7 @@ interface ChatInputProps {
   onRemoveAgent?: () => void;
   config?: Record<string, number>;
   previewState?: ChatInputPreviewState;
+  workspace?: string;
 }
 
 export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ClaudeChatInput({
@@ -172,6 +193,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   onRemoveAgent,
   config = CHAT_INPUT_MOTION.defaultConfig,
   previewState,
+  workspace = "junyangliu",
 }, ref) {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -307,6 +329,46 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             overflowX: "hidden",
           }}
         >
+          {/* ── 顶部：工作空间选择器 ── */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-start",
+            minHeight: 24,
+            paddingLeft: 16,
+            paddingRight: 24,
+            paddingBottom: 16,
+          }}>
+            <button
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                height: 28,
+                paddingLeft: 8,
+                paddingRight: 6,
+                borderRadius: 12,
+                backgroundColor: "#F2F4F8",
+                border: "none",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <FolderOpen style={{ width: 16, height: 16, color: "rgba(0,0,0,0.65)" }} />
+              <span style={{
+                fontSize: 14,
+                fontWeight: 500,
+                lineHeight: "22px",
+                color: "rgba(0,0,0,0.9)",
+                whiteSpace: "nowrap",
+                fontFamily: FONT,
+              }}>
+                {workspace}
+              </span>
+              <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
+            </button>
+          </div>
+
           {/* 文件预览区 */}
           {files.length > 0 && (
             <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 24px 12px" }}>
@@ -402,7 +464,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             />
           </div>
 
-          {/* ── 底部操作栏 ── */}
+          {/* ── 底部操作栏（常驻可见） ── */}
           <div
             onClick={() => textareaRef.current?.focus()}
             style={{
@@ -412,146 +474,141 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
               padding: 16,
             }}
           >
-            {/* 左侧工具区：激活态渐显，默认隐藏 */}
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                alignItems: "center",
-                opacity: isActive ? 1 : 0,
-                transform: isActive ? "translateY(0)" : "translateY(4px)",
-                transition: "opacity 0.25s ease, transform 0.25s ease",
-                pointerEvents: isActive ? "auto" : "none",
-              }}
-            >
-              {/* Agent 角色标签：排第一位 */}
-              {agentChip && (
-                <div
-                  onClick={() => {
-                    onRemoveAgent?.();
-                    // 叉掉 agent 标签后保持激活态：聚焦 textarea
-                    textareaRef.current?.focus();
-                  }}
+            {/* 左侧工具区：始终可见 */}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                {/* + 按钮 */}
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                    type="button"
+                    aria-label="添加附件"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 28,
+                      height: 28,
+                      padding: "4px 12px",
+                      borderRadius: 12,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      color: "rgba(0,0,0,0.65)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Plus style={{ width: 16, height: 16, strokeWidth: 2 }} />
+                  </button>
+
+                  {/* 竖线分隔符 */}
+                  <div style={{ width: 1, height: 12, backgroundColor: "#E8EAED", flexShrink: 0 }} />
+                </div>
+
+                {/* Agent 下拉按钮 */}
+                <button
+                  type="button"
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 0,
-                    height: 32,
-                    padding: "0 12px",
-                    borderRadius: 20,
-                    backgroundColor: "#dcf3fa",
-                    cursor: onRemoveAgent ? "pointer" : "default",
+                    gap: 4,
+                    height: 28,
+                    paddingLeft: 12,
+                    paddingRight: 2,
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                    borderRadius: 12,
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
                     flexShrink: 0,
                   }}
                 >
+                  <AgentIcon size={16} />
                   <span style={{
                     fontSize: 14,
                     fontWeight: 500,
                     lineHeight: "22px",
                     color: "rgba(0,0,0,0.9)",
                     whiteSpace: "nowrap",
+                    fontFamily: FONT,
                   }}>
-                    {agentChip.title}
+                    Agent
                   </span>
-                  <span style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 14,
-                    height: 14,
-                    flexShrink: 0,
-                    color: "rgba(0,0,0,0.5)",
-                    marginLeft: 8,
-                  }}>
-                    <X style={{ width: 10, height: 10 }} />
-                  </span>
-                </div>
-              )}
-              {skills.length > 0 ? (
-                skills.map((skill) => (
-                  <div
-                    key={skill.id}
-                    onClick={() => {
-                      onRemoveSkill?.(skill.id);
-                      // 叉掉标签后保持激活态：聚焦 textarea
-                      textareaRef.current?.focus();
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 0,
-                      height: 32,
-                      padding: "0 12px",
-                      borderRadius: 20,
-                      backgroundColor: "#dcf3fa",
-                      cursor: onRemoveSkill ? "pointer" : "default",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {skill.icon && (
-                      <span style={{ display: "flex", flexShrink: 0, marginRight: 4 }}>
-                        {skill.icon}
-                      </span>
-                    )}
-                    <span style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      lineHeight: "22px",
-                      color: "rgba(0,0,0,0.9)",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {skill.label}
-                    </span>
-                    {onRemoveSkill && (
-                      <span style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 14,
-                        height: 14,
-                        flexShrink: 0,
-                        color: "rgba(0,0,0,0.5)",
-                        marginLeft: 8,
-                      }}>
-                        <X style={{ width: 10, height: 10 }} />
-                      </span>
-                    )}
-                  </div>
-                ))
-              ) : (
-                // 激活但无 skill 时占位，保持布局稳定
-                <div style={{ height: 32 }} />
-              )}
-            </div>
+                  <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
+                </button>
+              </div>
 
-            {/* 右侧按钮组 */}
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {/* + 按钮：无背景，纯图标 */}
+              {/* 模型选择器 */}
               <button
-                onClick={() => fileInputRef.current?.click()}
+                type="button"
+                onClick={(e) => e.stopPropagation()}
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  border: "none",
-                  background: "transparent",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: 4,
+                  height: 32,
+                  paddingLeft: 12,
+                  paddingRight: 12,
+                  borderRadius: 20,
+                  border: "none",
+                  background: "transparent",
                   cursor: "pointer",
-                  color: "rgba(0,0,0,0.85)",
                   flexShrink: 0,
-                  padding: 0,
                 }}
-                type="button"
-                aria-label="添加附件"
               >
-                <Plus style={{ width: 20, height: 20, strokeWidth: 1.5 }} />
+                <ClaudeLogo size={16} />
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  lineHeight: "22px",
+                  color: "rgba(0,0,0,0.9)",
+                  whiteSpace: "nowrap",
+                  fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                }}>
+                  Claude-Opus-4.6
+                </span>
+                <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
               </button>
 
-              {/* 发送按钮：灰色圆底 + 白色纸飞机 */}
+              {/* Skills 下拉按钮 */}
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  height: 28,
+                  paddingLeft: 12,
+                  paddingRight: 2,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <Code style={{ width: 16, height: 16, color: "rgba(0,0,0,0.65)" }} />
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  lineHeight: "22px",
+                  color: "rgba(0,0,0,0.9)",
+                  whiteSpace: "nowrap",
+                  fontFamily: FONT,
+                }}>
+                  skills
+                </span>
+                <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
+              </button>
+            </div>
+
+            {/* 右侧：发送按钮 */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
               <button
                 onClick={handleSend}
                 disabled={!hasContent}
