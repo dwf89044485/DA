@@ -27,10 +27,10 @@ import {
   IconSidebarToggle,
 } from "@/components/ui/wedata-icons";
 
-// ── Figma 资产 URL（来自 kdPqSMMrMcX9qBC4h2BdxQ node 2029-60827）
-const LOGO_OTTER_URL   = "https://www.figma.com/api/mcp/asset/170fe2d2-8b83-4cf6-b9aa-fa034fc37ed3";
-const LOGO_TEXT_URL    = "https://www.figma.com/api/mcp/asset/7be31ded-83fe-4cf5-a010-2af1de962319";
-const SIDEBAR_ICON_URL = "https://www.figma.com/api/mcp/asset/a23c7904-55b9-4993-8ded-e75299ef8f3a";
+// ── 本地资产路径（从 Figma 导出并保存到 public/logo/）
+const LOGO_OTTER_URL   = "/logo/otter.png";
+const LOGO_TEXT_URL    = "/logo/wedata-text.png";
+const SIDEBAR_ICON_URL = "/logo/sidebar-toggle.png";
 
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
