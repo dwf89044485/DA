@@ -49,7 +49,7 @@ const C = {
 interface MenuItem {
   id: string;
   label: string;
-  shortLabel: string;  // 收起状态下显示的短标签
+  shortLabel: string;
   icon: React.ReactNode;
 }
 
@@ -127,36 +127,34 @@ interface SidebarProps {
 // ── Animation constants ────────────────────────────────────────
 const COLLAPSE_DURATION = 0.22;
 const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
+const CONTENT_FADE_DURATION = 0.18; // 内容交叉淡入淡出时长
 
-const HOVER_ENTER_DELAY = 300; // ms — 停留才展开，快速划过不触发
-const HOVER_LEAVE_DELAY = 150; // ms — 离开后短暂延迟再收起
+const HOVER_ENTER_DELAY = 300;
+const HOVER_LEAVE_DELAY = 150;
 
 // ── Sidebar ────────────────────────────────────────────────────
 export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(true);        // 驱动宽度动画
-  const [showCollapsed, setShowCollapsed] = useState(true); // 驱动内容切换
+  const [collapsed, setCollapsed] = useState(true);
   const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback(() => {
     if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
-    if (contentTimer.current) { clearTimeout(contentTimer.current); contentTimer.current = null; }
-    enterTimer.current = setTimeout(() => {
-      setCollapsed(false);
-      setShowCollapsed(false); // 展开时立即切换内容
-    }, HOVER_ENTER_DELAY);
+    enterTimer.current = setTimeout(() => setCollapsed(false), HOVER_ENTER_DELAY);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     if (enterTimer.current) { clearTimeout(enterTimer.current); enterTimer.current = null; }
-    if (contentTimer.current) { clearTimeout(contentTimer.current); contentTimer.current = null; }
-    leaveTimer.current = setTimeout(() => {
-      setCollapsed(true); // 立即开始宽度收窄动画
-      // 在动画接近尾声时切换内容，让内容变化和最后一点收缩同时发生
-      contentTimer.current = setTimeout(() => setShowCollapsed(true), COLLAPSE_DURATION * 800);
-    }, HOVER_LEAVE_DELAY);
+    leaveTimer.current = setTimeout(() => setCollapsed(true), HOVER_LEAVE_DELAY);
   }, []);
+
+  // 内容层通用样式
+  const layerStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    transition: `opacity ${CONTENT_FADE_DURATION}s ease`,
+    pointerEvents: "auto",
+  };
 
   return (
     <motion.div
@@ -185,296 +183,183 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
         borderRadius: 14,
       }}>
         {/* 展开状态 logo */}
-        <AnimatePresence initial={false}>
-          {!showCollapsed && (
-            <motion.div
-              key="logo-expanded"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: COLLAPSE_EASE }}
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                height: 84,
-                alignItems: "center",
-                overflow: "hidden",
-              }}
-            >
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 0 : 1,
+          pointerEvents: collapsed ? "none" : "auto",
+          display: "flex",
+          height: 84,
+          alignItems: "center",
+        }}>
+          <div style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingLeft: 20,
+            paddingRight: 8,
+            minWidth: 0,
+          }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
               <div style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingLeft: 20,
-                paddingRight: 8,
-                minWidth: 0,
+                width: 32, height: 32, borderRadius: 8,
+                backgroundImage: "linear-gradient(134.675deg, rgb(138,255,245) 12.793%, rgb(58,195,255) 90.59%)",
+                flexShrink: 0, overflow: "hidden", position: "relative",
               }}>
-                {/* logo1：海獭 + 文字 */}
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                  {/* 海獭图标 32×32 */}
-                  <div style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    backgroundImage: "linear-gradient(134.675deg, rgb(138,255,245) 12.793%, rgb(58,195,255) 90.59%)",
-                    flexShrink: 0,
-                    overflow: "hidden",
-                    position: "relative",
-                  }}>
-                    <div style={{
-                      position: "absolute",
-                      width: 43.502,
-                      height: 37.633,
-                      left: -13.57,
-                      top: 3.95,
-                    }}>
-                      <img
-                        alt=""
-                        src={LOGO_OTTER_URL}
-                        style={{
-                          display: "block",
-                          width: "101.52%",
-                          height: "100.33%",
-                          maxWidth: "none",
-                          position: "absolute",
-                          top: "-0.33%",
-                          left: "-1.52%",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {/* weData 文字 */}
-                  <div style={{ width: 94, height: 16, position: "relative", flexShrink: 0 }}>
-                    <img
-                      alt="weData"
-                      src={LOGO_TEXT_URL}
-                      style={{
-                        position: "absolute",
-                        display: "block",
-                        width: "100%",
-                        height: "100%",
-                        maxWidth: "none",
-                      }}
-                    />
-                  </div>
+                <div style={{ position: "absolute", width: 43.502, height: 37.633, left: -13.57, top: 3.95 }}>
+                  <img alt="" src={LOGO_OTTER_URL} style={{ display: "block", width: "101.52%", height: "100.33%", maxWidth: "none", position: "absolute", top: "-0.33%", left: "-1.52%" }} />
                 </div>
-
-                {/* 收起按钮 */}
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 8,
-                    borderRadius: 8,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                    transition: "background 100ms",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-                  title="收起菜单"
-                >
-                  <div style={{ width: 16, height: 16, overflow: "hidden", position: "relative", flexShrink: 0 }}>
-                    <div style={{ position: "absolute", top: "12.5%", left: "6.25%", right: "6.25%", bottom: "12.5%" }}>
-                      <div style={{ position: "absolute", top: "-5.54%", left: "-4.75%", right: "-4.75%", bottom: "-5.54%" }}>
-                        <img
-                          alt=""
-                          src={SIDEBAR_ICON_URL}
-                          style={{ display: "block", width: "100%", height: "100%", maxWidth: "none" }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 收起状态 logo — 40×40 居中，对齐 Figma node 2680:72219 */}
-        <AnimatePresence initial={false}>
-          {showCollapsed && (
-            <motion.div
-              key="logo-collapsed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: COLLAPSE_EASE }}
+              <div style={{ width: 94, height: 16, position: "relative", flexShrink: 0 }}>
+                <img alt="weData" src={LOGO_TEXT_URL} style={{ position: "absolute", display: "block", width: "100%", height: "100%", maxWidth: "none" }} />
+              </div>
+            </div>
+            <button
               style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: 8, borderRadius: 8, border: "none", background: "transparent",
+                cursor: "pointer", flexShrink: 0, transition: "background 100ms",
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+              title="收起菜单"
             >
-              {/* 收起状态 logo */}
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  backgroundImage: "linear-gradient(134.675deg, rgb(138,255,245) 12.793%, rgb(58,195,255) 90.59%)",
-                  flexShrink: 0,
-                  overflow: "hidden",
-                  position: "relative",
-                }}
-              >
-                <div style={{
-                  position: "absolute",
-                  width: 54.378,
-                  height: 47.041,
-                  left: -16.97,
-                  top: 4.94,
-                }}>
-                  <img
-                    alt=""
-                    src={LOGO_OTTER_URL}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      height: "100%",
-                      maxWidth: "none",
-                      position: "absolute",
-                      top: "-0.33%",
-                      left: "-1.52%",
-                    }}
-                  />
+              <div style={{ width: 16, height: 16, overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                <div style={{ position: "absolute", top: "12.5%", left: "6.25%", right: "6.25%", bottom: "12.5%" }}>
+                  <div style={{ position: "absolute", top: "-5.54%", left: "-4.75%", right: "-4.75%", bottom: "-5.54%" }}>
+                    <img alt="" src={SIDEBAR_ICON_URL} style={{ display: "block", width: "100%", height: "100%", maxWidth: "none" }} />
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </button>
+          </div>
+        </div>
+
+        {/* 收起状态 logo */}
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 1 : 0,
+          pointerEvents: collapsed ? "auto" : "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 8,
+            backgroundImage: "linear-gradient(134.675deg, rgb(138,255,245) 12.793%, rgb(58,195,255) 90.59%)",
+            flexShrink: 0, overflow: "hidden", position: "relative",
+          }}>
+            <div style={{ position: "absolute", width: 54.378, height: 47.041, left: -16.97, top: 4.94 }}>
+              <img alt="" src={LOGO_OTTER_URL} style={{ display: "block", width: "100%", height: "100%", maxWidth: "none", position: "absolute", top: "-0.33%", left: "-1.52%" }} />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Menu list ── */}
-      <div style={{
-        flex: 1, overflowY: "auto", overflowX: "hidden",
-        padding: showCollapsed ? "0 12px" : "0 12px",
-        scrollbarWidth: "none",
-      }}>
-        {MENU_GROUPS.map((group, gi) => (
-          <div key={gi}>
-            {/* 分组标签：展开时显示，收起时显示分隔线 */}
-            {group.label && (
-              <div style={{
-                padding: showCollapsed ? "12px 0 4px" : "24px 16px 8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: showCollapsed ? "center" : "flex-start",
-                overflow: "hidden",
-              }}>
-                {showCollapsed ? (
-                  <div style={{
-                    width: 24,
-                    height: 1,
-                    backgroundColor: C.border,
-                  }} />
-                ) : (
-                  <span style={{
-                    fontSize: 12, fontWeight: 400,
-                    lineHeight: "20px", color: C.textTertiary,
-                    whiteSpace: "nowrap",
-                  }}>
+      <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+        {/* 展开态菜单 */}
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 0 : 1,
+          pointerEvents: collapsed ? "none" : "auto",
+          overflowY: "auto",
+          overflowX: "hidden",
+          padding: "0 12px",
+          scrollbarWidth: "none" as const,
+        }}>
+          {MENU_GROUPS.map((group, gi) => (
+            <div key={gi}>
+              {group.label && (
+                <div style={{ padding: "24px 16px 8px", display: "flex", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 400, lineHeight: "20px", color: C.textTertiary, whiteSpace: "nowrap" }}>
                     {group.label}
                   </span>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+              {group.items.map((item) => {
+                const isActive = activeId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onMenuClick?.(item.id)}
+                    style={{
+                      width: "100%", height: 36,
+                      display: "flex", alignItems: "center", gap: 16,
+                      padding: "0 16px", borderRadius: 20,
+                      border: "none",
+                      background: isActive ? C.activeItemBg : "transparent",
+                      cursor: "pointer", textAlign: "left",
+                      transition: "background 100ms", flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg; }}
+                    onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                  >
+                    <span style={{ display: "flex", flexShrink: 0 }}>{item.icon}</span>
+                    <span style={{
+                      flex: 1, fontSize: 14, fontWeight: isActive ? 600 : 400,
+                      lineHeight: "22px", color: C.textPrimary,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
 
-            {group.items.map((item) => {
-              const isActive = activeId === item.id;
-              return showCollapsed ? (
-                /* ── 收起态菜单项：图标 + 短标签，纵向排列 ── */
-                <button
-                  key={item.id}
-                  onClick={() => onMenuClick?.(item.id)}
-                  title={item.label}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 2,
-                    padding: "10px 4px",
-                    borderRadius: 24,
-                    border: "none",
-                    background: isActive ? C.activeItemBg : "transparent",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    transition: "background 100ms",
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive)
-                      (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg;
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive)
-                      (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  }}
-                >
-                  <span style={{ display: "flex", flexShrink: 0 }}>
-                    {item.icon}
-                  </span>
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: isActive ? 600 : 400,
-                    lineHeight: "16px",
-                    color: C.textPrimary,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    maxWidth: 44,
-                  }}>
-                    {item.shortLabel}
-                  </span>
-                </button>
-              ) : (
-                /* ── 展开态菜单项 ── */
-                <button
-                  key={item.id}
-                  onClick={() => onMenuClick?.(item.id)}
-                  style={{
-                    width: "100%", height: 36,
-                    display: "flex", alignItems: "center", gap: 16,
-                    padding: "0 16px", borderRadius: 20,
-                    border: "none",
-                    background: isActive ? C.activeItemBg : "transparent",
-                    cursor: "pointer", textAlign: "left",
-                    transition: "background 100ms", flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive)
-                      (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg;
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive)
-                      (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  }}
-                >
-                  <span style={{ display: "flex", flexShrink: 0 }}>
-                    {item.icon}
-                  </span>
-                  <span style={{
-                    flex: 1, fontSize: 14,
-                    fontWeight: isActive ? 600 : 400,
-                    lineHeight: "22px", color: C.textPrimary,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {/* 收起态菜单 */}
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 1 : 0,
+          pointerEvents: collapsed ? "auto" : "none",
+          overflowY: "auto",
+          overflowX: "hidden",
+          padding: "0 12px",
+          scrollbarWidth: "none" as const,
+        }}>
+          {MENU_GROUPS.map((group, gi) => (
+            <div key={gi}>
+              {group.label && (
+                <div style={{ padding: "12px 0 4px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 24, height: 1, backgroundColor: C.border }} />
+                </div>
+              )}
+              {group.items.map((item) => {
+                const isActive = activeId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onMenuClick?.(item.id)}
+                    title={item.label}
+                    style={{
+                      width: "100%", display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center",
+                      gap: 2, padding: "10px 4px", borderRadius: 24,
+                      border: "none",
+                      background: isActive ? C.activeItemBg : "transparent",
+                      cursor: "pointer", textAlign: "center",
+                      transition: "background 100ms", flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = C.hoverItemBg; }}
+                    onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                  >
+                    <span style={{ display: "flex", flexShrink: 0 }}>{item.icon}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: isActive ? 600 : 400,
+                      lineHeight: "16px", color: C.textPrimary,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 44,
+                    }}>
+                      {item.shortLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Account ── */}
@@ -482,57 +367,58 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
         padding: 12, flexShrink: 0,
         borderTop: `1px solid ${C.border}`,
         overflow: "hidden",
+        position: "relative",
+        minHeight: 72,
       }}>
-        {showCollapsed ? (
-          /* 收起态：只显示头像图标，居中 */
+        {/* 收起态：头像居中 */}
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 1 : 0,
+          pointerEvents: collapsed ? "auto" : "none",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "8px 0",
+        }}>
           <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "8px 0",
+            width: 40, height: 40, borderRadius: 30,
+            backgroundColor: "#FFFFFF", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: `1px solid ${C.border}`, cursor: "pointer",
           }}>
+            <IconWorkspace size={16} color={C.textTertiary} />
+          </div>
+        </div>
+
+        {/* 展开态：头像 + 信息 */}
+        <div style={{
+          ...layerStyle,
+          opacity: collapsed ? 0 : 1,
+          pointerEvents: collapsed ? "none" : "auto",
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "8px", borderRadius: 32, cursor: "pointer",
+        }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 30,
+            backgroundColor: "#FFFFFF", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: `1px solid ${C.border}`,
+          }}>
+            <IconWorkspace size={16} color={C.textTertiary} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              width: 40, height: 40, borderRadius: 30,
-              backgroundColor: "#FFFFFF", flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              border: `1px solid ${C.border}`,
-              cursor: "pointer",
+              fontSize: 14, fontWeight: 500, lineHeight: "22px", color: C.textPrimary,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
-              <IconWorkspace size={16} color={C.textTertiary} />
+              测试工作空间
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 400, lineHeight: "20px", color: C.textTertiary,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              Joseph@tencent.com
             </div>
           </div>
-        ) : (
-          /* 展开态：头像 + 工作空间名 + 邮箱 */
-          <div style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "8px", borderRadius: 32, cursor: "pointer",
-          }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 30,
-              backgroundColor: "#FFFFFF", flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              border: `1px solid ${C.border}`,
-            }}>
-              <IconWorkspace size={16} color={C.textTertiary} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 14, fontWeight: 500, lineHeight: "22px",
-                color: C.textPrimary,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                测试工作空间
-              </div>
-              <div style={{
-                fontSize: 12, fontWeight: 400, lineHeight: "20px",
-                color: C.textTertiary,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                Joseph@tencent.com
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </motion.div>
   );
