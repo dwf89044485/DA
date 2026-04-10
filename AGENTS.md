@@ -52,17 +52,37 @@ AI 对话功能演示项目。唯一页面 `app/page.tsx`，数据全部 mock，
 
 ## Git 工作流（优先级高于 Skill routing）
 
-solo 开发，main 分支直推，无 PR 流程。
+solo 开发，无 PR 流程，采用「稳定主线 + 改造分支」双轨：
 
-「提交」「推送」「提交推送」「commit」「push」等指令，直接执行，**禁止调用 `/ship`**：
+- `main`：只保留可运行、可回退版本
+- `feat/*` / `refactor/*` / `备份`：承载大改造与高风险变更
+
+**分支规则（强制）**
+- 当任务属于「大改造 / 重构 / 高风险」时，第一步先创建或切换到独立分支，再开始改动。
+- 大改造期间所有提交都在独立分支完成；未得到明确指令，不回写 `main`。
+- 用户明确要求「提交」「推送」「提交推送」「commit」「push」时，直接执行，**禁止调用 `/ship`**。
 
 ```bash
-git add <changed-files>
+git add -A
 git commit -m "<message>"
-git push origin main
+# 若当前在 main：git push origin main
+# 若当前在改造分支：git push -u origin <branch-name>
 ```
 
-**注意：** `CLAUDE.md` 是指向 `AGENTS.md` 的 symlink。提交时必须 `git add AGENTS.md`，`git add CLAUDE.md` 是 no-op。
+**回退规则（强制）**
+- 已推送到远端的错误提交：优先 `git revert`。
+- 仅本地未推送且用户确认后：可 `git reset --hard <commit>`。
+- 大改造开始前，建议创建稳定锚点（commit/tag）。
+
+**注意：** `CLAUDE.md` 是指向 `AGENTS.md` 的 symlink。为避免遗漏，默认使用 `git add -A`；如需定向暂存，再用 `git add AGENTS.md`。
+
+**AI 自动执行清单（每次开发任务）**
+1. 先执行 `git status` 与 `git branch --show-current`。
+2. 若为大改造且当前在 `main`，先切独立分支再改代码。
+3. 实施最小必要改动，不扩 scope。
+4. 提交前执行 `npx tsc --noEmit` 与 `npm run build`；失败则停止并反馈。
+5. 使用小步提交，便于精准回退。
+6. 回复时给出分支名、commit hash、可用回退方式。
 
 ---
 
