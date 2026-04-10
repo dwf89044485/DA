@@ -295,7 +295,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
       style={{
         height: "100vh",
         backgroundColor: C.bg,
-        borderRight: `1px solid ${C.borderColor}`,
+        borderRight: collapsed ? "none" : `1px solid ${C.borderColor}`,
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
