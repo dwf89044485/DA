@@ -133,18 +133,29 @@ const HOVER_LEAVE_DELAY = 150; // ms — 离开后短暂延迟再收起
 
 // ── Sidebar ────────────────────────────────────────────────────
 export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(true);        // 驱动宽度动画
+  const [showCollapsed, setShowCollapsed] = useState(true); // 驱动内容切换
   const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback(() => {
     if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
-    enterTimer.current = setTimeout(() => setCollapsed(false), HOVER_ENTER_DELAY);
+    if (contentTimer.current) { clearTimeout(contentTimer.current); contentTimer.current = null; }
+    enterTimer.current = setTimeout(() => {
+      setCollapsed(false);
+      setShowCollapsed(false); // 展开时立即切换内容
+    }, HOVER_ENTER_DELAY);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     if (enterTimer.current) { clearTimeout(enterTimer.current); enterTimer.current = null; }
-    leaveTimer.current = setTimeout(() => setCollapsed(true), HOVER_LEAVE_DELAY);
+    if (contentTimer.current) { clearTimeout(contentTimer.current); contentTimer.current = null; }
+    leaveTimer.current = setTimeout(() => {
+      setCollapsed(true); // 立即开始宽度收窄动画
+      // 内容切换延迟到动画结束后
+      contentTimer.current = setTimeout(() => setShowCollapsed(true), COLLAPSE_DURATION * 1000);
+    }, HOVER_LEAVE_DELAY);
   }, []);
 
   return (
@@ -175,7 +186,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
       }}>
         {/* 展开状态 logo */}
         <AnimatePresence initial={false}>
-          {!collapsed && (
+          {!showCollapsed && (
             <motion.div
               key="logo-expanded"
               initial={{ opacity: 0 }}
@@ -287,7 +298,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
 
         {/* 收起状态 logo — 40×40 居中，对齐 Figma node 2680:72219 */}
         <AnimatePresence initial={false}>
-          {collapsed && (
+          {showCollapsed && (
             <motion.div
               key="logo-collapsed"
               initial={{ opacity: 0 }}
@@ -344,7 +355,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
       {/* ── Menu list ── */}
       <div style={{
         flex: 1, overflowY: "auto", overflowX: "hidden",
-        padding: collapsed ? "0 12px" : "0 12px",
+        padding: showCollapsed ? "0 12px" : "0 12px",
         scrollbarWidth: "none",
       }}>
         {MENU_GROUPS.map((group, gi) => (
@@ -352,13 +363,13 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
             {/* 分组标签：展开时显示，收起时显示分隔线 */}
             {group.label && (
               <div style={{
-                padding: collapsed ? "12px 0 4px" : "24px 16px 8px",
+                padding: showCollapsed ? "12px 0 4px" : "24px 16px 8px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: collapsed ? "center" : "flex-start",
+                justifyContent: showCollapsed ? "center" : "flex-start",
                 overflow: "hidden",
               }}>
-                {collapsed ? (
+                {showCollapsed ? (
                   <div style={{
                     width: 24,
                     height: 1,
@@ -378,7 +389,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
 
             {group.items.map((item) => {
               const isActive = activeId === item.id;
-              return collapsed ? (
+              return showCollapsed ? (
                 /* ── 收起态菜单项：图标 + 短标签，纵向排列 ── */
                 <button
                   key={item.id}
@@ -472,7 +483,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
         borderTop: `1px solid ${C.border}`,
         overflow: "hidden",
       }}>
-        {collapsed ? (
+        {showCollapsed ? (
           /* 收起态：只显示头像图标，居中 */
           <div style={{
             display: "flex",
