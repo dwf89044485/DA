@@ -128,20 +128,23 @@ interface SidebarProps {
 const COLLAPSE_DURATION = 0.22;
 const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
-const HOVER_DELAY = 150; // ms debounce to avoid flicker
+const HOVER_ENTER_DELAY = 300; // ms — 停留才展开，快速划过不触发
+const HOVER_LEAVE_DELAY = 150; // ms — 离开后短暂延迟再收起
 
 // ── Sidebar ────────────────────────────────────────────────────
 export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(true);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback(() => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setCollapsed(false);
+    if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
+    enterTimer.current = setTimeout(() => setCollapsed(false), HOVER_ENTER_DELAY);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    hoverTimer.current = setTimeout(() => setCollapsed(true), HOVER_DELAY);
+    if (enterTimer.current) { clearTimeout(enterTimer.current); enterTimer.current = null; }
+    leaveTimer.current = setTimeout(() => setCollapsed(true), HOVER_LEAVE_DELAY);
   }, []);
 
   return (
