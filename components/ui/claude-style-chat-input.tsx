@@ -517,20 +517,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 {showAddMenu && (
                   <div
                     ref={addMenuRef}
-                    style={{
-                      position: "absolute",
-                      bottom: "calc(100% + 8px)",
-                      left: 0,
-                      backgroundColor: "#FFFFFF",
-                      borderRadius: 16,
-                      padding: 8,
-                      boxShadow: "0px 8px 12px rgba(0,0,0,0.05), 0px 8px 24px rgba(0,0,0,0.1)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      zIndex: 100,
-                      minWidth: 180,
-                    }}
+                    style={popupMenuStyle}
                   >
                     {/* 指定表/知识库 */}
                     <div
