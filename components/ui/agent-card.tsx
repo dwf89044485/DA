@@ -48,10 +48,8 @@ export interface FanCardsConfig {
   overlapX: number;          // 卡片重叠  默认 -8
   rotateOuter: number;       // 外侧卡旋转（卡1取负，卡3取正）
   outerCardOffset: number;   // 外侧卡下沉
-  // ── Hover 推开 ──
+  // ── Hover 悬浮 ──
   dist1X: number;            // 近邻推开  默认 30
-  dist2X: number;            // 次邻推开  默认 16
-  // ── 悬浮物理 ──
   hoverHeight: number;       // 悬浮高度 0~1，驱动 Y偏移/放大/阴影
   yFactor: number;           // Y偏移系数（-h * yFactor）
   scaleFactor: number;       // 放大系数（1 + h * scaleFactor）
@@ -81,10 +79,8 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   overlapX: -20,
   rotateOuter: 11,
   outerCardOffset: 38,
-  // Hover 推开
+  // Hover 悬浮
   dist1X: 40,
-  dist2X: 24,
-  // 悬浮物理
   hoverHeight: 0.30,
   yFactor: 40,
   scaleFactor: 0.30,
@@ -118,13 +114,11 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
     { key: "overlapX", label: "卡片重叠", min: -30, max: 20, step: 1, group: "扇形布局" },
     { key: "rotateOuter", label: "外侧旋转", min: 0, max: 30, step: 1, group: "扇形布局" },
     { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1, group: "扇形布局" },
-    // Hover 推开
-    { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1, group: "Hover 推开" },
-    { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1, group: "Hover 推开" },
-    // 悬浮物理
-    { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05, group: "悬浮物理" },
-    { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1, group: "悬浮物理" },
-    { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02, group: "悬浮物理" },
+    // Hover 悬浮
+    { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1, group: "Hover 悬浮" },
+    { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05, group: "Hover 悬浮" },
+    { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1, group: "Hover 悬浮" },
+    { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02, group: "Hover 悬浮" },
     // Hover 投影
     { key: "shadowBlur1Range", label: "主投影模糊", min: 0, max: 300, step: 2, group: "Hover 投影" },
     { key: "shadowY1Range", label: "主投影Y偏移", min: 0, max: 150, step: 1, group: "Hover 投影" },
@@ -801,16 +795,8 @@ export function AgentFanCards({
   const getOffset = (i: number) => {
     if (activeHoveredIdx === null) return { x: 0 };
     if (i === activeHoveredIdx) return { x: 0 };
-    const dist = Math.abs(i - activeHoveredIdx);
-    if (dist === 1) {
-      const dir = i < activeHoveredIdx ? -1 : 1;
-      return { x: dir * config.dist1X };
-    }
-    if (dist === 2) {
-      const dir = i < activeHoveredIdx ? -1 : 1;
-      return { x: dir * config.dist2X };
-    }
-    return { x: 0 };
+    const dir = i < activeHoveredIdx ? -1 : 1;
+    return { x: dir * config.dist1X };
   };
 
   return (
