@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   IconCatalog,
@@ -119,6 +119,8 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
     { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05, group: "Hover 悬浮" },
     { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1, group: "Hover 悬浮" },
     { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02, group: "Hover 悬浮" },
+    { key: "fanTransitionDuration", label: "推开时长", min: 0.1, max: 1.0, step: 0.05, group: "Hover 悬浮" },
+    { key: "hoverTransitionDuration", label: "浮起时长", min: 0.1, max: 1.0, step: 0.05, group: "Hover 悬浮" },
     // Hover 投影
     { key: "shadowBlur1Range", label: "主投影模糊", min: 0, max: 300, step: 2, group: "Hover 投影" },
     { key: "shadowY1Range", label: "主投影Y偏移", min: 0, max: 150, step: 1, group: "Hover 投影" },
@@ -135,9 +137,6 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
     { key: "infoToOpacity", label: "渐变结束透明度", min: 0, max: 1, step: 0.05, group: "信息区毛玻璃" },
     { key: "infoBlur", label: "高斯模糊", min: 0, max: 60, step: 1, group: "信息区毛玻璃" },
     { key: "infoSaturate", label: "饱和度", min: 0, max: 300, step: 5, group: "信息区毛玻璃" },
-    // 动画
-    { key: "fanTransitionDuration", label: "推开时长", min: 0.1, max: 1.0, step: 0.05, group: "动画" },
-    { key: "hoverTransitionDuration", label: "浮起时长", min: 0.1, max: 1.0, step: 0.05, group: "动画" },
   ],
   states: [
     { value: "free", label: "不锁定" },
@@ -789,19 +788,6 @@ export function AgentFanCards({
   previewState?: AgentCardPreviewState;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleMouseEnter = (i: number) => {
-    if (previewState) return;
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => setHoveredIdx(i), 300);
-  };
-
-  const handleMouseLeave = () => {
-    if (previewState) return;
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setHoveredIdx(null);
-  };
 
   const activeHoveredIdx =
     previewState === "hover" ? 1 : previewState === "default" ? null : hoveredIdx;
@@ -852,8 +838,8 @@ export function AgentFanCards({
                 y: { duration: config.hoverTransitionDuration, ease: EASE },
                 scale: { duration: config.hoverTransitionDuration, ease: EASE },
               }}
-              onMouseEnter={() => handleMouseEnter(i)}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={() => !previewState && setHoveredIdx(i)}
+              onMouseLeave={() => !previewState && setHoveredIdx(null)}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
