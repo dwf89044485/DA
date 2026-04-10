@@ -783,8 +783,8 @@ export const NOVA_DATA: AgentCardProps = {
   ],
 };
 
-// ── 四卡扇形排列组件 ───────────────────────────────────────────
-const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, ORION_DATA, NOVA_DATA];
+// ── 三卡扇形排列组件 ───────────────────────────────────────────
+const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, NOVA_DATA];
 
 export type AgentCardPreviewState = "default" | "hover";
 
@@ -836,7 +836,8 @@ export function AgentFanCards({
         position: "relative",
       }}>
         {FAN_CARD_DATA.map((data, i) => {
-          const rotates = [-config.rotateOuter, -config.rotateInner, config.rotateInner, config.rotateOuter];
+          // 三卡：左倾 / 立正 / 右倾
+          const rotates = [-config.rotateOuter, 0, config.rotateOuter];
           const rotate = rotates[i] ?? 0;
           const isHovered = activeHoveredIdx === i;
           const { x } = getOffset(i);
@@ -862,13 +863,12 @@ export function AgentFanCards({
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,
-                marginTop: (i === 0 || i === 3) ? config.outerCardOffset : 0,
+                // 左右两张外侧卡下沉，中间卡不下沉
+                marginTop: (i === 0 || i === 2) ? config.outerCardOffset : 0,
                 transformOrigin: "center bottom",
-                zIndex: isHovered ? 20 : 1,
+                zIndex: isHovered ? 20 : i === 1 ? 2 : 1,
                 position: "relative",
-                boxShadow: isHovered
-                  ? hover.shadow
-                  : rest,
+                boxShadow: isHovered ? hover.shadow : rest,
                 borderRadius: 24,
                 transition: `box-shadow ${config.hoverTransitionDuration}s cubic-bezier(0.4,0,0.2,1)`,
               }}
