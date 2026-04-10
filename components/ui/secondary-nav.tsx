@@ -22,87 +22,56 @@ const C = {
 // ── Status icon types ──────────────────────────────────────────
 type TaskStatus = "loading" | "pending" | "check";
 
-// ── Inline SVG icons ───────────────────────────────────────────
+// ── Icon assets (exported from Figma) ──────────────────────────
+const ICON_LOADING       = "/icons/loading.svg";
+const ICON_PENDING       = "/icons/pending.svg";
+const ICON_CHECK         = "/icons/check.svg";
+const ICON_AI_NEW_CHAT   = "/icons/ai-new-chat.svg";
+const ICON_FOLDER        = "/icons/folder.svg";
+const ICON_CHEVRON_DOWN  = "/icons/chevron-down.svg";
+const ICON_CHEVRON_RIGHT = "/icons/chevron-right.svg";
+const ICON_SIDEBAR_PANEL = "/icons/sidebar-panel.svg";
+
+// ── Icon components (img-based, pixel-perfect from Figma) ──────
 function IconLoading({ size = 16 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, animation: "spin 1.2s linear infinite" }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <path
-        d="M8 1.5A6.5 6.5 0 1 0 14.5 8"
-        stroke="#1664FF"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div style={{ width: size, height: size, flexShrink: 0, position: "relative", animation: "sec-nav-spin 1.2s linear infinite" }}>
+      <style>{`@keyframes sec-nav-spin { to { transform: rotate(360deg); } }`}</style>
+      <img alt="" src={ICON_LOADING} width={size} height={size} style={{ display: "block" }} />
+    </div>
   );
 }
 
 function IconPending({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="8" cy="8" r="4.5" stroke="#D6DBE3" strokeWidth="1" fill="none" />
-    </svg>
-  );
+  return <img alt="" src={ICON_PENDING} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 function IconCheck({ size = 16 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path
-        d="M4.5 8.5L6.5 10.5L11.5 5.5"
-        stroke="rgba(0,0,0,0.5)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div style={{ width: size, height: size, flexShrink: 0, position: "relative" }}>
+      <img alt="" src={ICON_CHECK} style={{ position: "absolute", top: "24.85%", left: "16.73%", width: "70.71%", height: "50.09%", display: "block" }} />
+    </div>
   );
 }
 
 function IconAiNewChat({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M8 2V14M2 8H14" stroke="rgba(0,0,0,0.7)" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return <img alt="" src={ICON_AI_NEW_CHAT} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 function IconFolder({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path
-        d="M2 4.5C2 3.67 2.67 3 3.5 3H6.29a1 1 0 0 1 .7.29L8 4.3h4.5c.83 0 1.5.67 1.5 1.5v5.7c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5V4.5Z"
-        stroke="rgba(0,0,0,0.5)"
-        strokeWidth="1"
-        fill="none"
-      />
-    </svg>
-  );
+  return <img alt="" src={ICON_FOLDER} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 function IconChevronDown({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M4 5.5L7 8.5L10 5.5" stroke="rgba(0,0,0,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <img alt="" src={ICON_CHEVRON_DOWN} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 function IconChevronRight({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M5.5 4L8.5 7L5.5 10" stroke="rgba(0,0,0,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <img alt="" src={ICON_CHEVRON_RIGHT} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 function IconSidebarPanel({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="rgba(0,0,0,0.5)" strokeWidth="1" fill="none" />
-      <line x1="6" y1="3" x2="6" y2="13" stroke="rgba(0,0,0,0.5)" strokeWidth="1" />
-    </svg>
-  );
+  return <img alt="" src={ICON_SIDEBAR_PANEL} width={size} height={size} style={{ flexShrink: 0, display: "block" }} />;
 }
 
 // ── Status icon renderer ───────────────────────────────────────
