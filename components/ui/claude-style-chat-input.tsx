@@ -178,8 +178,11 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   const [files, setFiles] = useState<AttachedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const addBtnRef = useRef<HTMLDivElement>(null);
+  const addMenuRef = useRef<HTMLDivElement>(null);
 
   const hasContent = message.trim().length > 0 || files.length > 0;
 
@@ -210,6 +213,21 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         Math.min(textareaRef.current.scrollHeight, 320) + "px";
     }
   }, [message]);
+
+  // 点击外部关闭加号菜单
+  useEffect(() => {
+    if (!showAddMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        addMenuRef.current && !addMenuRef.current.contains(e.target as Node) &&
+        addBtnRef.current && !addBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowAddMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAddMenu]);
 
   const handleFiles = useCallback((filesList: FileList | File[]) => {
     const newFiles: AttachedFile[] = Array.from(filesList).map((file) => ({
@@ -415,25 +433,101 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
           >
             {/* 左侧工具 — h-32 gap-8 rounded-14 */}
             <div style={{ display: "flex", gap: 8, height: 32, alignItems: "center", borderRadius: 14, flexShrink: 0 }}>
-              {/* btn-add: 32×32 rounded-16 */}
-              <div
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                style={{
-                  position: "relative",
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                {/* add icon: 外层 inset 18.75%, 内层再 inset 16.67% */}
-                <div style={{ position: "absolute", inset: "18.75%" }}>
-                  <div style={{ position: "absolute", inset: "16.67%" }}>
-                    <img src="/icons/add.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+              {/* btn-add: 32×32 rounded-16 + 弹出菜单 */}
+              <div style={{ position: "relative" }}>
+                <div
+                  ref={addBtnRef}
+                  className="ci-hover ci-hover-round"
+                  onClick={(e) => { e.stopPropagation(); setShowAddMenu((v) => !v); }}
+                  style={{
+                    position: "relative",
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    transition: "background 0.15s ease",
+                  }}
+                >
+                  <div style={{ position: "absolute", inset: "18.75%" }}>
+                    <div style={{ position: "absolute", inset: "16.67%" }}>
+                      <img src="/icons/add.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
+                    </div>
                   </div>
                 </div>
+
+                {/* 加号弹出菜单 */}
+                {showAddMenu && (
+                  <div
+                    ref={addMenuRef}
+                    style={{
+                      position: "absolute",
+                      bottom: "calc(100% + 8px)",
+                      left: 0,
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: 16,
+                      padding: 8,
+                      boxShadow: "0px 8px 12px rgba(0,0,0,0.05), 0px 8px 24px rgba(0,0,0,0.1)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      zIndex: 100,
+                      minWidth: 180,
+                    }}
+                  >
+                    {/* 指定表/知识库 */}
+                    <div
+                      className="ci-menu-item"
+                      onClick={(e) => { e.stopPropagation(); setShowAddMenu(false); }}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        height: 32,
+                        alignItems: "center",
+                        padding: "3px 8px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        transition: "background 0.15s ease",
+                      }}
+                    >
+                      <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0 }}>
+                        <img src="/icons/ai-chart.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                      </div>
+                      <span style={{
+                        fontSize: 14, fontWeight: 400, lineHeight: "22px",
+                        color: "rgba(0,0,0,0.9)", whiteSpace: "nowrap",
+                        overflow: "hidden", textOverflow: "ellipsis",
+                        fontFamily: FONT,
+                      }}>指定表/知识库</span>
+                    </div>
+                    {/* 上传文件/图片 */}
+                    <div
+                      className="ci-menu-item"
+                      onClick={(e) => { e.stopPropagation(); setShowAddMenu(false); fileInputRef.current?.click(); }}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        height: 32,
+                        alignItems: "center",
+                        padding: "3px 8px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        transition: "background 0.15s ease",
+                      }}
+                    >
+                      <div style={{ position: "relative", width: 16, height: 16, flexShrink: 0, overflow: "hidden" }}>
+                        <img src="/icons/upload-1.svg" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+                      </div>
+                      <span style={{
+                        fontSize: 14, fontWeight: 400, lineHeight: "22px",
+                        color: "rgba(0,0,0,0.9)", whiteSpace: "nowrap",
+                        overflow: "hidden", textOverflow: "ellipsis",
+                        fontFamily: FONT,
+                      }}>上传文件/图片</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 分割线: h-16 w-1px */}
@@ -445,6 +539,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
               <div style={{ display: "flex", gap: 4, height: "100%", alignItems: "center", flexShrink: 0 }}>
                 {/* Agent 按钮: px-8 rounded-20 gap-4 */}
                 <div
+                  className="ci-hover"
                   onClick={(e) => e.stopPropagation()}
                   style={{
                     display: "flex",
@@ -476,6 +571,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
                 {/* 模型按钮: h-32 px-8 rounded-20 gap-4 */}
                 <div
+                  className="ci-hover"
                   onClick={(e) => e.stopPropagation()}
                   style={{
                     display: "flex",
@@ -505,6 +601,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
                 {/* Skills 按钮: px-8 rounded-20 gap-4 */}
                 <div
+                  className="ci-hover"
                   onClick={(e) => e.stopPropagation()}
                   style={{
                     display: "flex",
@@ -614,6 +711,12 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
+
+        .ci-hover { transition: background 0.15s ease; }
+        .ci-hover:hover { background: #F2F4F8 !important; }
+        .ci-hover-round:hover { background: #F2F4F8 !important; }
+        .ci-menu-item { transition: background 0.15s ease; }
+        .ci-menu-item:hover { background: #F2F4F8 !important; }
       `}</style>
 
       {/* 隐藏文件输入 */}
