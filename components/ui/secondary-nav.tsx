@@ -394,22 +394,22 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         <SectionHeader label="最近任务" />
         <TaskItem status="loading" title="ETL 开发_订单数据同步流程项目" />
         <TaskItem status="pending" title="统计近 7 天各渠道用户支付金额，按天汇总，输出可直接使用的 SQL 与结果" />
-        <TaskItem status="check" title="接入业务库【订单表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" badge={1} />
-        <TaskItem status="check" title="接入业务库【用户表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" badge={1} />
+        <TaskItem status="check" title="接入业务库【订单表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
+        <TaskItem status="check" title="接入业务库【用户表】数据源：自动识别表结构与数据质量，生成标准数仓模型，配置 T+1 同步任务" />
         <TaskItem status="check" title="猫眼_客户留存指标分析" />
         <TaskItem status="check" title="T+1调度工作流编排" />
         <MoreLink count={7} />
 
         <SectionHeader label="文件空间" />
         <FolderItem name="junyangliu_dev" expanded={folder1Open} onToggle={() => setFolder1Open(v => !v)}>
-          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" badge={2} />
+          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
           <TaskItem indented status="pending" title="用户复购率指标开发" />
           <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
           <TaskItem indented status="check" title="零售业务_月度库存健康度指标开发" />
         </FolderItem>
 
         <FolderItem name="junyangliu_test" expanded={folder2Open} onToggle={() => setFolder2Open(v => !v)}>
-          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" badge={2} />
+          <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" />
           <TaskItem indented status="pending" title="用户复购率指标开发" />
           <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
         </FolderItem>
