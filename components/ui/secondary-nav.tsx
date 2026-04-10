@@ -266,11 +266,13 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
     transition: `opacity ${CONTENT_FADE}s ease`,
     pointerEvents: "auto",
   };
+  const navWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+  const navWidthPx = `${navWidth}px`;
 
   return (
     <motion.div
       initial={false}
-      animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, minWidth: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
+      animate={{ width: navWidthPx, minWidth: navWidthPx, maxWidth: navWidthPx, flexBasis: navWidthPx }}
       transition={{ duration: COLLAPSE_DURATION, ease: COLLAPSE_EASE }}
       style={{
         height: "100vh",
@@ -279,6 +281,12 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
+        flexGrow: 0,
+        width: navWidthPx,
+        minWidth: navWidthPx,
+        maxWidth: navWidthPx,
+        flexBasis: navWidthPx,
+        boxSizing: "border-box",
         fontFamily: FONT,
         userSelect: "none",
         overflow: "hidden",
@@ -340,7 +348,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         ...contentFade,
         opacity: collapsed ? 0 : 1,
         pointerEvents: collapsed ? "none" : "auto",
-        padding: "0 12px 8px", flexShrink: 0,
+        padding: collapsed ? "0" : "0 12px 8px", flexShrink: 0,
         height: collapsed ? 0 : "auto",
         overflow: "hidden",
       }}>
@@ -369,7 +377,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         opacity: collapsed ? 0 : 1,
         pointerEvents: collapsed ? "none" : "auto",
         overflowY: "auto", overflowX: "hidden",
-        padding: "0 12px", scrollbarWidth: "none",
+        padding: collapsed ? "0" : "0 12px", scrollbarWidth: "none",
       }}>
         <SectionHeader label="最近任务" />
         <TaskItem status="loading" title="ETL 开发_订单数据同步流程项目" />

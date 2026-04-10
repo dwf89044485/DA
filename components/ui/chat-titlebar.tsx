@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { IconAiNewChat, IconData } from "./wedata-icons";
+import { IconData } from "./wedata-icons";
 
 // ── Design DNA tokens ────────────────────────────────────────────
 const TEXT_PRIMARY = "rgba(0,0,0,0.9)";
@@ -15,22 +15,16 @@ const ICON_SIZE = 16;
 // ── Types ────────────────────────────────────────────────────────
 interface ChatTitlebarProps {
   title?: string;
-  onNewChat?: () => void;
   onArtifacts?: () => void;
 }
 
 // ── Component ────────────────────────────────────────────────────
 export default function ChatTitlebar({
   title,
-  onNewChat,
   onArtifacts,
 }: ChatTitlebarProps) {
-  const [hovered, setHovered] = React.useState(false);
-
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       style={{
         display: "flex",
         alignItems: "center",
@@ -69,15 +63,6 @@ export default function ChatTitlebar({
           flexShrink: 0,
         }}
       >
-        {/* 新建对话 — 默认隐藏，hover titlebar 时显示 */}
-        <ActionButton
-          onClick={onNewChat}
-          label="新建对话"
-          style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s ease" }}
-        >
-          <IconAiNewChat size={ICON_SIZE} color={ICON_COLOR} />
-        </ActionButton>
-
         {/* 产物 — 常显 */}
         <ActionButton onClick={onArtifacts} label="产物">
           <IconData size={ICON_SIZE} color={ICON_COLOR} />

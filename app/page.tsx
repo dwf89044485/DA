@@ -20,14 +20,6 @@ import ThinkingSummary from "@/components/ui/thinking-summary";
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
-// ── Agent 名称色映射 ──────────────────────────────────────────
-const AGENT_NAME_COLORS: Record<string, string> = {
-  Rigel: "#2873FF",
-  Vega: "#00BBA2",
-  Orion: "#CC6B3A",
-  Nova: "#934BFF",
-};
-
 // ── Chat phase ──────────────────────────────────────────────────
 type ChatPhase = "welcome" | "conversation";
 
@@ -106,6 +98,7 @@ export default function Home() {
   const [summonedAgent, setSummonedAgent] = useState<SummonedAgent | null>(null);
   const [chatPhase, setChatPhase] = useState<ChatPhase>("welcome");
   const [userMessage, setUserMessage] = useState<string>("");
+  const [conversationTitle, setConversationTitle] = useState<string>("");
   // 对话流分步揭示：0=用户气泡, 1=思考摘要, 2=Plan卡片
   const [revealStep, setRevealStep] = useState(0);
   // 卡片参数配置
@@ -163,6 +156,7 @@ export default function Home() {
       });
     }
     setChatPhase("conversation");
+    setConversationTitle(`开发"用户复购率"指标`);
     // 清掉 skills 和 summonedAgent 相关的输入框状态
     setActiveSkills([]);
   }, [summonedAgent]);
@@ -195,6 +189,7 @@ export default function Home() {
   const handleNewChat = useCallback(() => {
     setChatPhase("welcome");
     setUserMessage("");
+    setConversationTitle("");
     setRevealStep(0);
     setSummonedAgent(null);
     setActiveSkills([]);
@@ -386,13 +381,7 @@ export default function Home() {
                 style={{ width: "100%" }}
               >
                 <ChatTitlebar
-                  agent={{
-                    name: summonedAgent?.name ?? "Rigel",
-                    title: summonedAgent?.title ?? "数仓工程专家",
-                    avatar: summonedAgent?.avatar ?? "/agents/1a.png",
-                    nameColor: AGENT_NAME_COLORS[summonedAgent?.name ?? "Rigel"],
-                  }}
-                  onNewChat={handleNewChat}
+                  title={conversationTitle}
                 />
               </motion.div>
             )}

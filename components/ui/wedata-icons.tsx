@@ -283,15 +283,12 @@ export function IconWorkspace({ size = 16, color = "currentColor", style, classN
   );
 }
 
-// ── 产物/数据 (Data artifact — grid table icon) ──────────────────
+// ── 产物/数据 (Data artifact — database table icon) ─────────────
 export function IconData({ size = 16, color = "currentColor", style, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ ...base(size, color), ...style }} className={className}>
-      <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-      <line x1="1" y1="5.5" x2="15" y2="5.5" stroke="currentColor" strokeWidth="1.2"/>
-      <line x1="1" y1="10.5" x2="15" y2="10.5" stroke="currentColor" strokeWidth="1.2"/>
-      <line x1="5.5" y1="1" x2="5.5" y2="15" stroke="currentColor" strokeWidth="1.2"/>
-      <line x1="10.5" y1="1" x2="10.5" y2="15" stroke="currentColor" strokeWidth="1.2"/>
+      <path d="M4 4.334H5.336V5.67H4V4.334ZM4 10.334H5.336V11.67H4V10.334Z" fill="currentColor" fillOpacity="0.9"/>
+      <path d="M2 8H14M2 6V10C2 11.886 2 12.828 2.586 13.414C3.172 14 4.114 14 6 14H10C11.886 14 12.828 14 13.414 13.414C14 12.828 14 11.886 14 10V6C14 4.114 14 3.172 13.414 2.586C12.828 2 11.886 2 10 2H6C4.114 2 3.172 2 2.586 2.586C2 3.172 2 4.114 2 6Z" stroke="currentColor" strokeOpacity="0.9" strokeWidth="1.33"/>
     </svg>
   );
 }

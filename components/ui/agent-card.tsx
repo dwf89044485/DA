@@ -179,10 +179,8 @@ interface AgentCardProps {
   nameColor?: string;
   /** 中文头衔 */
   title: string;
-  /** 头像图片 URL（上层，需透明通道） */
+  /** 头像图片 URL */
   avatar: string;
-  /** 背景图片 URL（底层） */
-  bgImage?: string;
   /** 简介描述（hover 展开时替换标签区） */
   description?: string;
   /** 数据指标（hover 展开时显示） */
@@ -216,7 +214,6 @@ export default function AgentCard({
   nameColor,
   title,
   avatar,
-  bgImage,
   description,
   stats,
   skills,
@@ -277,27 +274,7 @@ export default function AgentCard({
           zIndex: 2,
         }}
       />
-      {/* ── 底层：背景图（可选，透过头像透明区域显现） ───── */}
-      {bgImage && (
-        <img
-          src={bgImage}
-          alt=""
-          aria-hidden="true"
-          style={{
-            display: "block",
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "top center",
-            pointerEvents: "none",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            opacity: 0.7,
-          }}
-        />
-      )}
-      {/* ── 上层：人物头像 ───────────────────────────────── */}
+      {/* ── 人物头像 ───────────────────────────────── */}
       <img
         src={avatar}
         alt={name}
