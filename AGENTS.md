@@ -89,11 +89,40 @@ git push origin main
 
 ---
 
+## Motion Editor 动效调参系统
+
+本项目有一套通用的动效参数调节系统（选择模式 → 参数面板）。**组件开发和动效调参是两个独立阶段**：
+
+1. **阶段一：组件开发** — 专注设计还原，不涉及动效系统
+2. **阶段二：动效调参** — 组件完成后，接入 Motion Editor 系统
+
+**当用户要求给组件「加动效」「调动效」「接入 Motion Editor」时**，必须先阅读 `docs/motion-editor-system.md`，然后按其中「接入新组件指南」（Section 7）执行：
+
+1. 在组件文件中导出 `MotionTargetDef`（id / label / schema / defaultConfig）
+2. 在 `app/page.tsx` 中用 `<MotionTargetOverlay>` 包裹组件
+3. 添加对应的 `<MotionPanel>` 条件渲染
+
+**不需要修改** MotionPanel、MotionSelectButton、MotionTargetOverlay 的代码。
+
+---
+
+## 启动 Dev Server
+
+启动 WebUI 时**必须**使用 `run_in_background` 模式，禁止用普通 Bash 调用（会被 2 分钟超时 kill）：
+
+```bash
+npm run dev   # Bash 工具设置 run_in_background: true
+```
+
+这样 dev server 生命周期跟随 Claude 会话，退出时自动清理。
+
+---
+
 ## Agentation
 
 开发时同时启动：
 ```bash
 npx agentation-mcp server   # 终端 1
-npm run dev                  # 终端 2
+npm run dev                  # 终端 2（或由 AI 通过 run_in_background 启动）
 ```
 收到标注后优先处理，优先级等同用户指令。

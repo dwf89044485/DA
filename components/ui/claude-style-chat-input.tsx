@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
 import { Plus, X, FileText, Loader2 } from "lucide-react";
+import type { MotionTargetDef } from "@/components/ui/motion-panel";
 
 // ── 实心纸飞机 SVG（对齐 Figma btn-send）────────────────────
 function SendIcon({ size = 16, color = "#FFFFFF" }: { size?: number; color?: string }) {
@@ -38,6 +39,38 @@ export interface AgentChip {
   title: string;
   avatar: string;
 }
+
+const DEFAULT_CHAT_INPUT_MOTION_CONFIG = {
+  borderRotateDuration: 4,
+  glowBreatheDuration: 5,
+  glowOpacity: 0.6,
+  glowInsetRest: -6,
+  glowInsetPeak: -10,
+  glowBlurRest: 22,
+  glowBlurPeak: 26,
+  activeMinHeight: 88,
+} as const;
+
+export const CHAT_INPUT_MOTION: MotionTargetDef = {
+  id: "chat-input",
+  label: "聊天输入框动效",
+  schema: [
+    { key: "borderRotateDuration", label: "边框旋转时长", min: 0.5, max: 12, step: 0.1, group: "边框动画" },
+    { key: "glowBreatheDuration", label: "光晕呼吸时长", min: 0.5, max: 12, step: 0.1, group: "边框动画" },
+    { key: "glowOpacity", label: "光晕透明度", min: 0, max: 1, step: 0.05, group: "光晕" },
+    { key: "glowInsetRest", label: "光晕内缩-常态", min: -24, max: 8, step: 1, group: "光晕" },
+    { key: "glowInsetPeak", label: "光晕内缩-峰值", min: -32, max: 8, step: 1, group: "光晕" },
+    { key: "glowBlurRest", label: "光晕模糊-常态", min: 0, max: 48, step: 1, group: "光晕" },
+    { key: "glowBlurPeak", label: "光晕模糊-峰值", min: 0, max: 64, step: 1, group: "光晕" },
+    { key: "activeMinHeight", label: "激活最小高度", min: 48, max: 140, step: 1, group: "布局" },
+  ],
+  states: [
+    { value: "default", label: "默认" },
+    { value: "active", label: "激活" },
+  ],
+  defaultState: "default",
+  defaultConfig: DEFAULT_CHAT_INPUT_MOTION_CONFIG as unknown as Record<string, number>,
+};
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return "0 Bytes";
@@ -116,6 +149,8 @@ export interface ChatInputHandle {
   focus: () => void;
 }
 
+export type ChatInputPreviewState = "default" | "active";
+
 // ── Main component ─────────────────────────────────────────────
 interface ChatInputProps {
   onSendMessage?: (data: { message: string; files: AttachedFile[] }) => void;
@@ -124,6 +159,8 @@ interface ChatInputProps {
   onRemoveSkill?: (id: string) => void;
   agentChip?: AgentChip;
   onRemoveAgent?: () => void;
+  config?: Record<string, number>;
+  previewState?: ChatInputPreviewState;
 }
 
 export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ClaudeChatInput({
@@ -133,6 +170,8 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
   onRemoveSkill,
   agentChip,
   onRemoveAgent,
+  config = CHAT_INPUT_MOTION.defaultConfig,
+  previewState,
 }, ref) {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -143,8 +182,19 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
   const hasContent = message.trim().length > 0 || files.length > 0;
 
-  // shouldBeActive 是即时值，直接驱动 UI
-  const shouldBeActive = isFocused || skills.length > 0 || !!agentChip;
+  const runtimeActive = isFocused || skills.length > 0 || !!agentChip;
+  const isPreviewMode = previewState !== undefined;
+  const isActive = isPreviewMode ? previewState === "active" : runtimeActive;
+
+  const borderRotateDuration = config["borderRotateDuration"] ?? 4;
+  const glowBreatheDuration = config["glowBreatheDuration"] ?? 5;
+  const glowOpacity = config["glowOpacity"] ?? 0.6;
+  const glowInsetRest = config["glowInsetRest"] ?? -6;
+  const glowInsetPeak = config["glowInsetPeak"] ?? -10;
+  const glowBlurRest = config["glowBlurRest"] ?? 22;
+  const glowBlurPeak = config["glowBlurPeak"] ?? 26;
+  const activeMinHeight = config["activeMinHeight"] ?? 88;
+  const shouldAnimate = isActive;
 
   // 暴露 focus 方法给父组件
   useImperativeHandle(ref, () => ({
@@ -215,14 +265,14 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         <div
           style={{
             position: "absolute",
-            inset: "var(--glow-inset, -6px)",
+            inset: `var(--glow-inset, ${glowInsetRest}px)`,
             borderRadius: 30,
-            background: shouldBeActive
+            background: isActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "transparent",
             filter: "blur(18px)",
-            opacity: shouldBeActive ? 0.6 : 0,
-            animation: shouldBeActive ? "border-rotate 4s linear infinite, glow-breathe 5s ease-in-out infinite" : "none",
+            opacity: isActive ? glowOpacity : 0,
+            animation: shouldAnimate ? `border-rotate ${borderRotateDuration}s linear infinite, glow-breathe ${glowBreatheDuration}s ease-in-out infinite` : "none",
             transition: "opacity 0.3s ease",
             pointerEvents: "none",
             zIndex: -1,
@@ -233,13 +283,13 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         <div
           style={{
             position: "relative",
-            borderRadius: shouldBeActive ? 25.5 : 25,   // 24 + border padding
-            padding: shouldBeActive ? "1.5px" : "1px",
+            borderRadius: isActive ? 25.5 : 25,   // 24 + border padding
+            padding: isActive ? "1.5px" : "1px",
             transition: "padding 0.3s ease",
-            background: shouldBeActive
+            background: isActive
               ? "conic-gradient(from var(--angle, 0deg), #DDDDFD, #A8DCF2, #F2CEB8, #C7E9E5, #DDDDFD)"
               : "#E8EAED",
-            animation: shouldBeActive ? "border-rotate 4s linear infinite" : "none",
+            animation: shouldAnimate ? `border-rotate ${borderRotateDuration}s linear infinite` : "none",
           }}
         >
         {/* ── 内层白色主容器 ── */}
@@ -276,7 +326,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
               position: "relative",
               padding: "0 24px",
               // 激活态：最小高度 88px（对齐 Figma），默认：auto
-              minHeight: shouldBeActive ? 88 : 24,
+              minHeight: isActive ? activeMinHeight : 24,
               transition: "min-height 0.25s cubic-bezier(0.4,0,0.2,1)",
             }}
           >
@@ -299,7 +349,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
-                  animation: "shimmer 5s linear infinite",
+                  animation: shouldAnimate ? "shimmer 5s linear infinite" : "none",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -368,10 +418,10 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 display: "flex",
                 gap: 4,
                 alignItems: "center",
-                opacity: shouldBeActive ? 1 : 0,
-                transform: shouldBeActive ? "translateY(0)" : "translateY(4px)",
+                opacity: isActive ? 1 : 0,
+                transform: isActive ? "translateY(0)" : "translateY(4px)",
                 transition: "opacity 0.25s ease, transform 0.25s ease",
-                pointerEvents: shouldBeActive ? "auto" : "none",
+                pointerEvents: isActive ? "auto" : "none",
               }}
             >
               {/* Agent 角色标签：排第一位 */}
@@ -566,12 +616,12 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
 
         @keyframes glow-breathe {
           0%, 100% {
-            --glow-inset: -6px;
-            filter: blur(22px);
+            --glow-inset: ${glowInsetRest}px;
+            filter: blur(${glowBlurRest}px);
           }
           50% {
-            --glow-inset: -10px;
-            filter: blur(26px);
+            --glow-inset: ${glowInsetPeak}px;
+            filter: blur(${glowBlurPeak}px);
           }
         }
 

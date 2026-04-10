@@ -28,6 +28,10 @@ const FONT =
 const FONT_EN =
   "var(--font-pixelify-sans), 'Pixelify Sans', 'PingFang SC', sans-serif";
 
+// ── Motion schema types ──────────────────────────────────────────
+export type { MotionParamDef, MotionStateDef, MotionTargetDef } from "@/components/ui/motion-panel";
+import type { MotionParamDef, MotionTargetDef } from "@/components/ui/motion-panel";
+
 // ── Types ───────────────────────────────────────────────────────
 interface SkillTag {
   label: string;
@@ -109,6 +113,52 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   hoverTransitionDuration: 0.30,
 };
 
+// ── Agent Card Motion Schema ────────────────────────────────────
+export const AGENT_CARD_MOTION: MotionTargetDef = {
+  id: "agent-cards",
+  label: "Agent 卡片动效",
+  schema: [
+    // 扇形布局
+    { key: "overlapX", label: "卡片重叠", min: -30, max: 20, step: 1, group: "扇形布局" },
+    // 扇形角度
+    { key: "rotateOuter", label: "外侧旋转", min: 0, max: 30, step: 1, group: "扇形角度" },
+    { key: "rotateInner", label: "内侧旋转", min: 0, max: 15, step: 1, group: "扇形角度" },
+    { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1, group: "扇形角度" },
+    // Hover 推开
+    { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1, group: "Hover 推开" },
+    { key: "dist2X", label: "次邻推开", min: 0, max: 40, step: 1, group: "Hover 推开" },
+    // 悬浮物理
+    { key: "hoverHeight", label: "悬浮高度", min: 0, max: 1.4, step: 0.05, group: "悬浮物理" },
+    { key: "yFactor", label: "Y偏移系数", min: 0, max: 80, step: 1, group: "悬浮物理" },
+    { key: "scaleFactor", label: "放大系数", min: 0, max: 0.8, step: 0.02, group: "悬浮物理" },
+    // Hover 投影
+    { key: "shadowBlur1Range", label: "主投影模糊", min: 0, max: 300, step: 2, group: "Hover 投影" },
+    { key: "shadowY1Range", label: "主投影Y偏移", min: 0, max: 150, step: 1, group: "Hover 投影" },
+    { key: "shadowAlpha1Range", label: "主投影透明度", min: 0, max: 0.5, step: 0.01, group: "Hover 投影" },
+    { key: "shadowBlur2Range", label: "副投影模糊", min: 0, max: 150, step: 2, group: "Hover 投影" },
+    { key: "shadowY2Range", label: "副投影Y偏移", min: 0, max: 80, step: 1, group: "Hover 投影" },
+    { key: "shadowAlpha2Range", label: "副投影透明度", min: 0, max: 0.3, step: 0.01, group: "Hover 投影" },
+    // 静态投影
+    { key: "restShadowY", label: "投影Y", min: 0, max: 20, step: 1, group: "静态投影" },
+    { key: "restShadowBlur", label: "投影模糊", min: 0, max: 40, step: 1, group: "静态投影" },
+    { key: "restShadowAlpha", label: "投影透明度", min: 0, max: 0.2, step: 0.01, group: "静态投影" },
+    // 信息区毛玻璃
+    { key: "infoFromOpacity", label: "渐变起始透明度", min: 0, max: 1, step: 0.05, group: "信息区毛玻璃" },
+    { key: "infoToOpacity", label: "渐变结束透明度", min: 0, max: 1, step: 0.05, group: "信息区毛玻璃" },
+    { key: "infoBlur", label: "高斯模糊", min: 0, max: 60, step: 1, group: "信息区毛玻璃" },
+    { key: "infoSaturate", label: "饱和度", min: 0, max: 300, step: 5, group: "信息区毛玻璃" },
+    // 动画
+    { key: "fanTransitionDuration", label: "推开时长", min: 0.1, max: 1.0, step: 0.05, group: "动画" },
+    { key: "hoverTransitionDuration", label: "浮起时长", min: 0.1, max: 1.0, step: 0.05, group: "动画" },
+  ],
+  states: [
+    { value: "default", label: "默认" },
+    { value: "hover", label: "Hover" },
+  ],
+  defaultState: "default",
+  defaultConfig: DEFAULT_FAN_CONFIG as unknown as Record<string, number>,
+};
+
 /**
  * 从归一化 hoverHeight (0~1) 派生物理属性：
  * h=0 时与非 hover 状态完全一致（y=0, scale=1, 默认阴影）
@@ -167,6 +217,37 @@ interface AgentCardProps {
   isHovered?: boolean;
   /** 扇形配置（信息区毛玻璃参数从这里读取） */
   fanConfig?: FanCardsConfig;
+}
+
+// ── 展开技能标签（独立组件，避免在 .map 内使用 hooks）──────────
+function ExpandedSkillChip({ label, clickable, onClick }: { label: string; clickable: boolean; onClick: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  return (
+    <div
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: 28,
+        paddingLeft: 12,
+        paddingRight: 8,
+        borderRadius: 100,
+        background: isHovered ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
+        boxShadow: isHovered ? "0 1px 6px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
+        cursor: clickable ? "pointer" : "default",
+        transition: "background 100ms, box-shadow 100ms",
+      }}
+    >
+      <span style={{ fontSize: 12, lineHeight: "20px", color: T.primary, whiteSpace: "nowrap" }}>
+        {label}
+      </span>
+      <ArrowUpRight />
+    </div>
+  );
 }
 
 // ── 小箭头图标 ──────────────────────────────────────────────────
@@ -508,46 +589,14 @@ export default function AgentCard({
               marginTop: 24,
             }}
           >
-            {expandedSkills.map((label, i) => {
-              const [isHovered, setIsHovered] = React.useState(false);
-              return (
-              <div
+            {expandedSkills.map((label, i) => (
+              <ExpandedSkillChip
                 key={i}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSkillClick?.(label);
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  height: 28,
-                  paddingLeft: 12,
-                  paddingRight: 8,
-                  borderRadius: 100,
-                  background: isHovered ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
-                  boxShadow: isHovered ? "0 1px 6px rgba(0,0,0,0.06)" : "0 1px 3px rgba(0,0,0,0.04)",
-                  cursor: onSkillClick ? "pointer" : "default",
-                  transition: "background 100ms, box-shadow 100ms",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 12,
-                    lineHeight: "20px",
-                    color: T.primary,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {label}
-                </span>
-                <ArrowUpRight />
-              </div>
-              );
-            })}
+                label={label}
+                clickable={!!onSkillClick}
+                onClick={() => onSkillClick?.(label)}
+              />
+            ))}
           </motion.div>
         )}
 
@@ -564,6 +613,9 @@ export default function AgentCard({
           <div
             onClick={(e) => { e.stopPropagation(); onSummon?.(); }}
             onMouseEnter={(e) => {
+              const div = e.currentTarget as HTMLDivElement;
+              div.style.background = "rgba(0,0,0,0.85)";
+              div.style.boxShadow = "0 2px 8px -2px rgba(0,0,0,0.3)";
             }}
             onMouseLeave={(e) => {
               const div = e.currentTarget as HTMLDivElement;
@@ -734,21 +786,23 @@ export const NOVA_DATA: AgentCardProps = {
 // ── 四卡扇形排列组件 ───────────────────────────────────────────
 const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, ORION_DATA, NOVA_DATA];
 
+export type AgentCardPreviewState = "default" | "hover";
+
 export function AgentFanCards({
   onSkillClick,
   onSummon,
   config = DEFAULT_FAN_CONFIG,
-  isEditorHovered = false,
+  previewState,
 }: {
   onSkillClick?: (label: string, agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
   onSummon?: (agent: { name: string; title: string; avatar: string; summonText?: string }) => void;
   config?: FanCardsConfig;
-  isEditorHovered?: boolean;
+  previewState?: AgentCardPreviewState;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // 当编辑器被 hover 时，自动浮起第二张卡片
-  const activeHoveredIdx = isEditorHovered ? 1 : hoveredIdx;
+  const activeHoveredIdx =
+    previewState === "hover" ? 1 : previewState === "default" ? null : hoveredIdx;
 
   const getOffset = (i: number) => {
     if (activeHoveredIdx === null) return { x: 0 };
@@ -803,8 +857,8 @@ export function AgentFanCards({
                 y: { duration: config.hoverTransitionDuration, ease: EASE },
                 scale: { duration: config.hoverTransitionDuration, ease: EASE },
               }}
-              onMouseEnter={() => !isEditorHovered && setHoveredIdx(i)}
-              onMouseLeave={() => !isEditorHovered && setHoveredIdx(null)}
+              onMouseEnter={() => !previewState && setHoveredIdx(i)}
+              onMouseLeave={() => !previewState && setHoveredIdx(null)}
               style={{
                 flexShrink: 0,
                 marginLeft: i === 0 ? 0 : config.overlapX,

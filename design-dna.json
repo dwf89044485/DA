@@ -45,10 +45,10 @@
         "usage": "白→浅灰为背景/卡片面；中灰为边框/分割线；深灰→黑为文字/按钮填充"
       },
       "semantic": {
-        "success": "#00B96B",
+        "success": "#0CBF5B",
         "success_chart": "#29C770",
-        "warning": "#FA8C16",
-        "error": "#F5222D",
+        "warning": "#FF7800",
+        "error": "#F64041",
         "error_chart": "#E85C5C",
         "info": "#1664FF",
         "link": "#0052D9"
@@ -150,8 +150,9 @@
         "display": {
           "size": "36px",
           "weight": "600",
-          "line_height": "40px",
-          "tracking": "0"
+          "line_height": "44px",
+          "tracking": "0",
+          "_source": "TDesign display-sm: 36px/44px/600"
         },
         "heading_1": {
           "size": "32px",
@@ -204,7 +205,7 @@
         "accent": "var(--font-pixelify-sans), 'Pixelify Sans', sans-serif",
         "technical": "'SF Pro Text', -apple-system, sans-serif"
       },
-      "font_style_notes": "中文优先的无衬线系统字体。标题用 600/500 字重，正文 400。Agent 名称用 Pixelify Sans 像素风点缀。按钮统一 14px/500。Figma 中仅定义 Regular(400) 和 Medium(500) 两种字重。对话页面正文 16px 使用 28px 行高(1.75比率)，优化中文长文本阅读体验。字号体系极为克制：对话中仅用 16px(主体) / 14px(次要) / 12px(标签) 三级。"
+      "font_style_notes": "基于 TDesign (tea-design) 字体系统。系统字体栈：-apple-system, BlinkMacSystemFont, pingfang SC, ...。TDesign 定义 medium=600，但 Figma 组件中 PingFang SC:Medium 实际渲染为 500。标题用 600 字重，正文 400。Agent 名称用 Pixelify Sans 像素风点缀。按钮统一 14px/500(PingFang SC Medium)。对话页面正文 16px 使用 28px 行高(1.75比率)，优化中文长文本阅读体验。字号体系极为克制：对话中仅用 16px(主体) / 14px(次要) / 12px(标签) 三级。TDesign 字号阶梯：12/13/14/16/18/20/24/28/32/36/38/40/42px。"
     },
 
     "spacing": {
@@ -263,8 +264,7 @@
         "outline": "0 2px 4px -2px rgba(0,0,0,0.12)"
       },
       "tab_shadows": {
-        "active_pill": "0 3px 6px -2px rgba(0,0,0,0.05), 0 6px 14px -4px rgba(0,0,0,0.05)",
-        "active_pill_alt": "0 3px 6px -3px rgba(0,0,0,0.08), 0 6px 12px -6px rgba(0,0,0,0.04)",
+        "active_pill": "0 3px 6px -3px rgba(0,0,0,0.08), 0 6px 12px -6px rgba(0,0,0,0.04)",
         "container_inset": "inset 0 2px 2px 0 rgba(0,0,0,0.03)"
       }
     },
@@ -298,19 +298,19 @@
     "components": {
       "button_style": "pill 形按钮(radius 100px)。两种颜色：填充(半透明黑 0.75→0.65→0.6)和描边(渐变灰底 #FAFBFC→#F2F4F7 + 1px #E9EBF0)。两种尺寸：Large 44px / Small 32px。字体 14px/500。支持 split button(主操作+下拉)、多操作组合、图标按钮。Loading 用旋转图标替代文字。",
       "input_style": "pill 搜索框(radius 100px, h44, 渐变灰底)。Chat 输入框 radius 24px，白底，激活态 conic-gradient 彩色边框。Select 组件共享 pill 形态。",
-      "card_style": "白底(#FFF)，radius 16px，shadow 0 4px 16px rgba(0,0,0,0.06)。对话页任务卡 1.5px #E9ECF1 边框。确认卡暖色底(#FFF8F0)。",
+      "card_style": "标准卡片：白底(#FFF)，radius 16px，border 1.5px #E9ECF1，无阴影。Agent名片卡：白底，radius 24px，border 1px #E6E9EF，shadow 0 4px 16px rgba(0,0,0,0.06)。任务卡header bg #F7F8FB h44 + ✦图标 + 14px/600进度文字。确认卡暖色底(#FFF8F0)。",
       "table_style": {
-        "header": "h44, bg rgba(242,244,248,0.6), text 12px/500 rgba(0,0,0,0.7), border-bottom 1px #F2F4F8",
+        "header": "h48, bg #F7F8FB (--color/bg/primary/lighten), text 12px/500 rgba(0,0,0,0.7), padding 16px 10px",
         "row": "h36(紧凑)/h48(宽松), bg white, text 12-14px/400, border-bottom 1px #E9ECF1",
         "row_number": "w45, text rgba(0,0,0,0.5)",
-        "column_divider": "1px #E9ECF1, h20",
+        "column_divider": "1px #E6E9EF (--color/border/primary/default), h20",
         "cell_padding": "16px",
         "no_striping": true,
         "sort_icon": "14px inline after header text"
       },
       "tab_style": {
-        "pill_tab": "radius 100px, container bg #F2F4F8 inset shadow, active white+shadow, h40, text 14px",
-        "underline_tab": "h44, active 2px #0052D9 bottom border, text 14px semibold/regular",
+        "pill_tab": "radius 100px, container bg #F2F4F8 + padding 2px + inset shadow(inset 0 2px 2px rgba(0,0,0,0.03)), active: white(0.9) bg + shadow(0 3px 6px -3px rgba(0,0,0,0.08), 0 6px 12px -6px rgba(0,0,0,0.04)) + 14px/600 #000, inactive: 14px/400 rgba(0,0,0,0.7), h40, tab-padding 16px 10px",
+        "underline_tab": "h32, active 2px #00C8D6 (品牌teal) bottom border + 14px/500 rgba(0,0,0,0.9), inactive 14px/500 rgba(0,0,0,0.7), tab-gap 24px, pt 4px",
         "studio_tab": "h84, active pill bg gradient white→#FAFBFC + shadow, badge NB/SQL/PY in Hack Bold"
       },
       "tree_style": {
@@ -411,7 +411,7 @@
     "page_patterns": {
       "conversation_page": {
         "structure": "title_bar(84px) → scrollable_messages(flex-1) → pinned_input(bottom-32px)",
-        "user_bubble": "右对齐，#EDF0F5 背景，不对称圆角(16/16/16/2px)",
+        "user_bubble": "右对齐，#EDF0F5 背景，不对称圆角(tl:16/tr:2/br:16/bl:16 — 右上角2px靠近用户头像)，padding 16px 12px，text-justify",
         "ai_response": "无气泡包裹，直接渲染在页面背景上",
         "task_card": "白底+1.5px #E9ECF1 边框+16px圆角，头部浅灰(#F7F8FB)含 ✦ 图标+进度计数",
         "artifact_card": "56px 暖沙色图标 + 标题+描述，3列网格排列",

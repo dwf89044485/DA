@@ -3,9 +3,10 @@
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Sidebar from "@/components/ui/sidebar";
-import ClaudeChatInput, { type ChatInputHandle, type SkillChip } from "@/components/ui/claude-style-chat-input";
-import { AgentFanCards, type FanCardsConfig, DEFAULT_FAN_CONFIG } from "@/components/ui/agent-card";
-import FanCardEditor from "@/components/ui/fan-card-editor";
+import ClaudeChatInput, { CHAT_INPUT_MOTION, type ChatInputHandle, type ChatInputPreviewState, type SkillChip } from "@/components/ui/claude-style-chat-input";
+import { AgentFanCards, type AgentCardPreviewState, type FanCardsConfig, DEFAULT_FAN_CONFIG, AGENT_CARD_MOTION } from "@/components/ui/agent-card";
+import MotionPanel, { MotionSelectButton, type MotionMode } from "@/components/ui/motion-panel";
+import MotionTargetOverlay from "@/components/ui/motion-target-overlay";
 import { IconAiHistory, IconCatalog, IconWorkflow, IconSQL, IconOps, IconMLExp } from "@/components/ui/wedata-icons";
 import StudioView from "@/components/ui/studio-view";
 import AiRunningBubble from "@/components/ui/ai-running-bubble";
@@ -108,7 +109,16 @@ export default function Home() {
   const [revealStep, setRevealStep] = useState(0);
   // 卡片参数配置
   const [fanConfig, setFanConfig] = useState<FanCardsConfig>(DEFAULT_FAN_CONFIG);
-  const [isEditorHovered, setIsEditorHovered] = useState(false);
+  const [chatInputConfig, setChatInputConfig] = useState<Record<string, number>>(CHAT_INPUT_MOTION.defaultConfig);
+  const [agentCardPreviewState, setAgentCardPreviewState] = useState<AgentCardPreviewState>(
+    (AGENT_CARD_MOTION.defaultState as AgentCardPreviewState | undefined) ?? "default"
+  );
+  const [chatInputPreviewState, setChatInputPreviewState] = useState<ChatInputPreviewState>(
+    (CHAT_INPUT_MOTION.defaultState as ChatInputPreviewState | undefined) ?? "default"
+  );
+  // Motion 选择模式
+  const [motionMode, setMotionMode] = useState<MotionMode>("idle");
+  const [motionTarget, setMotionTarget] = useState<string | null>(null);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const dataClawRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -157,6 +167,31 @@ export default function Home() {
     // 清掉 skills 和 summonedAgent 相关的输入框状态
     setActiveSkills([]);
   }, [summonedAgent]);
+
+  // ── Motion 选择模式 handlers ──────────────────────────────────
+  const handleMotionButtonClick = useCallback(() => {
+    if (motionMode === "idle") {
+      setMotionMode("selecting");
+    } else {
+      // selecting 或 editing → 回到 idle
+      setMotionMode("idle");
+      setMotionTarget(null);
+      setAgentCardPreviewState((AGENT_CARD_MOTION.defaultState as AgentCardPreviewState | undefined) ?? "default");
+      setChatInputPreviewState((CHAT_INPUT_MOTION.defaultState as ChatInputPreviewState | undefined) ?? "default");
+    }
+  }, [motionMode]);
+
+  const handleMotionSelect = useCallback((targetId: string) => {
+    setMotionTarget(targetId);
+    setMotionMode("editing");
+  }, []);
+
+  const handleMotionPanelClose = useCallback(() => {
+    setMotionMode("idle");
+    setMotionTarget(null);
+    setAgentCardPreviewState((AGENT_CARD_MOTION.defaultState as AgentCardPreviewState | undefined) ?? "default");
+    setChatInputPreviewState((CHAT_INPUT_MOTION.defaultState as ChatInputPreviewState | undefined) ?? "default");
+  }, []);
 
   const handleNewChat = useCallback(() => {
     setChatPhase("welcome");
@@ -377,13 +412,32 @@ export default function Home() {
           position: "relative",
           backgroundColor: C.rightBg,
         }}>
-          {/* 参数编辑器 - 仅在 welcome 阶段显示 */}
+          {/* Motion 参数面板 - 仅在 editing 模式显示 */}
           <AnimatePresence>
-            {chatPhase === "welcome" && (
-              <FanCardEditor
-                config={fanConfig}
-                onChange={setFanConfig}
-                onHoverChange={setIsEditorHovered}
+            {chatPhase === "welcome" && motionMode === "editing" && motionTarget === "agent-cards" && (
+              <MotionPanel
+                targetLabel={AGENT_CARD_MOTION.label}
+                schema={AGENT_CARD_MOTION.schema}
+                config={fanConfig as unknown as Record<string, number>}
+                defaultConfig={AGENT_CARD_MOTION.defaultConfig}
+                onChange={(c) => setFanConfig(c as unknown as FanCardsConfig)}
+                stateOptions={AGENT_CARD_MOTION.states}
+                selectedState={agentCardPreviewState}
+                onStateChange={(state) => setAgentCardPreviewState(state as AgentCardPreviewState)}
+                onClose={handleMotionPanelClose}
+              />
+            )}
+            {chatPhase === "welcome" && motionMode === "editing" && motionTarget === "chat-input" && (
+              <MotionPanel
+                targetLabel={CHAT_INPUT_MOTION.label}
+                schema={CHAT_INPUT_MOTION.schema}
+                config={chatInputConfig}
+                defaultConfig={CHAT_INPUT_MOTION.defaultConfig}
+                onChange={(c) => setChatInputConfig(c)}
+                stateOptions={CHAT_INPUT_MOTION.states}
+                selectedState={chatInputPreviewState}
+                onStateChange={(state) => setChatInputPreviewState(state as ChatInputPreviewState)}
+                onClose={handleMotionPanelClose}
               />
             )}
           </AnimatePresence>
@@ -438,7 +492,19 @@ export default function Home() {
                           }}>专家团随时待命</span>
                         </div>
                         <div style={{ marginTop: -20 }}>
-                          <AgentFanCards config={fanConfig} isEditorHovered={isEditorHovered} onSkillClick={handleSkillClick} onSummon={handleSummon} />
+                          <MotionTargetOverlay
+                            targetId="agent-cards"
+                            targetLabel={AGENT_CARD_MOTION.label}
+                            isSelecting={motionMode === "selecting"}
+                            onSelect={handleMotionSelect}
+                          >
+                            <AgentFanCards
+                              config={fanConfig}
+                              previewState={motionMode === "editing" && motionTarget === "agent-cards" ? agentCardPreviewState : undefined}
+                              onSkillClick={handleSkillClick}
+                              onSummon={handleSummon}
+                            />
+                          </MotionTargetOverlay>
                         </div>
                       </motion.div>
                     )}
@@ -586,15 +652,24 @@ export default function Home() {
 
             {/* 输入框：不设 zIndex，避免创建 stacking context，让内部 glow 的负 z-index 能逃逸到父级 */}
             <div style={{ position: "relative" }}>
-              <ClaudeChatInput
-                ref={chatInputRef}
-                placeholder={chatPhase === "conversation" ? "继续对话..." : "选择一位专家或直接分配任务"}
-                skills={chatPhase === "welcome" ? activeSkills : []}
-                onRemoveSkill={handleRemoveSkill}
-                agentChip={chatPhase === "welcome" ? (summonedAgent ?? undefined) : undefined}
-                onRemoveAgent={handleRemoveAgent}
-                onSendMessage={handleSendMessage}
-              />
+              <MotionTargetOverlay
+                targetId="chat-input"
+                targetLabel={CHAT_INPUT_MOTION.label}
+                isSelecting={motionMode === "selecting"}
+                onSelect={handleMotionSelect}
+              >
+                <ClaudeChatInput
+                  ref={chatInputRef}
+                  placeholder={chatPhase === "conversation" ? "继续对话..." : "选择一位专家或直接分配任务"}
+                  skills={chatPhase === "welcome" ? activeSkills : []}
+                  onRemoveSkill={handleRemoveSkill}
+                  agentChip={chatPhase === "welcome" ? (summonedAgent ?? undefined) : undefined}
+                  onRemoveAgent={handleRemoveAgent}
+                  onSendMessage={handleSendMessage}
+                  config={chatInputConfig}
+                  previewState={motionMode === "editing" && motionTarget === "chat-input" ? chatInputPreviewState : undefined}
+                />
+              </MotionTargetOverlay>
             </div>
           </div>
         </div>
@@ -617,6 +692,11 @@ export default function Home() {
         </motion.div>
         )}
       </div>
+
+      {/* Motion 选择模式按钮 - 仅 welcome 阶段显示 */}
+      {chatPhase === "welcome" && (
+        <MotionSelectButton mode={motionMode} onClick={handleMotionButtonClick} />
+      )}
     </div>
   );
 }
