@@ -47,8 +47,7 @@ export interface FanCardsConfig {
   // ── 扇形布局 ──
   overlapX: number;          // 卡片重叠  默认 -8
   // ── 扇形角度 ──
-  rotateOuter: number;       // 外侧卡旋转（卡1取负，卡4取正）
-  rotateInner: number;       // 内侧卡旋转（卡2取负，卡3取正）
+  rotateOuter: number;       // 外侧卡旋转（卡1取负，卡3取正）
   outerCardOffset: number;   // 外侧卡下沉
   // ── Hover 推开 ──
   dist1X: number;            // 近邻推开  默认 30
@@ -83,7 +82,6 @@ export const DEFAULT_FAN_CONFIG: FanCardsConfig = {
   overlapX: -20,
   // 扇形角度
   rotateOuter: 11,
-  rotateInner: 4,
   outerCardOffset: 38,
   // Hover 推开
   dist1X: 40,
@@ -122,7 +120,6 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
     { key: "overlapX", label: "卡片重叠", min: -30, max: 20, step: 1, group: "扇形布局" },
     // 扇形角度
     { key: "rotateOuter", label: "外侧旋转", min: 0, max: 30, step: 1, group: "扇形角度" },
-    { key: "rotateInner", label: "内侧旋转", min: 0, max: 15, step: 1, group: "扇形角度" },
     { key: "outerCardOffset", label: "外侧下沉", min: 0, max: 60, step: 1, group: "扇形角度" },
     // Hover 推开
     { key: "dist1X", label: "近邻推开", min: 0, max: 60, step: 1, group: "Hover 推开" },
