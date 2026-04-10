@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
-import { Plus, X, FileText, Loader2, ChevronDown } from "lucide-react";
+import { X, FileText, Loader2 } from "lucide-react";
 import type { MotionTargetDef } from "@/components/ui/motion-panel";
 
 // ── 实心纸飞机 SVG（对齐 Figma btn-send）────────────────────
@@ -12,26 +12,6 @@ function SendIcon({ size = 16, color = "#FFFFFF" }: { size?: number; color?: str
         d="M14.2 1.8C14.5 1.5 14.9 1.8 14.8 2.2L12.2 13.6C12.1 14 11.7 14.1 11.4 13.9L8.2 11.6L6.6 13.3C6.3 13.6 5.8 13.4 5.8 13V10.4L12.4 3.4C12.5 3.3 12.3 3.1 12.2 3.2L4.2 9.2L1.6 7.8C1.2 7.6 1.2 7.1 1.6 6.9L14.2 1.8Z"
         fill={color}
       />
-    </svg>
-  );
-}
-
-// ── Agent 图标 SVG ─────────────────────────────────────────────
-function AgentIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 1C4.7 1 2 3.2 2 6c0 1.4.7 2.7 1.8 3.6-.1.8-.5 1.5-1 2-.2.2-.1.5.1.6.1.1.2.1.3.1 1.1 0 2.1-.4 2.9-1.1.6.2 1.3.3 1.9.3 3.3 0 6-2.2 6-5s-2.7-5-6-5zM5.5 7a1 1 0 110-2 1 1 0 010 2zm5 0a1 1 0 110-2 1 1 0 010 2z" fill="currentColor"/>
-    </svg>
-  );
-}
-
-// ── Claude Logo SVG ────────────────────────────────────────────
-function ClaudeLogo({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="8" r="7" fill="#F9F0E7"/>
-      <path d="M5.5 6.5L8 4l2.5 2.5M5.5 9.5L8 12l2.5-2.5" stroke="#D97757" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="8" cy="8" r="1.2" fill="#D97757"/>
     </svg>
   );
 }
@@ -456,7 +436,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                       flexShrink: 0,
                     }}
                   >
-                    <Plus style={{ width: 16, height: 16, strokeWidth: 2 }} />
+                    <img src="/icons/add.svg" alt="" style={{ width: 16, height: 16 }} />
                   </button>
 
                   {/* 竖线分隔符 */}
@@ -483,7 +463,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                     flexShrink: 0,
                   }}
                 >
-                  <AgentIcon size={16} />
+                  <img src="/icons/agent.svg" alt="" style={{ width: 16, height: 16 }} />
                   <span style={{
                     fontSize: 14,
                     fontWeight: 500,
@@ -494,7 +474,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                   }}>
                     Agent
                   </span>
-                  <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
+                  <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
                 </button>
               </div>
 
@@ -516,7 +496,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                   flexShrink: 0,
                 }}
               >
-                <ClaudeLogo size={16} />
+                <img src="/icons/claude-logo.svg" alt="" style={{ width: 16, height: 16 }} />
                 <span style={{
                   fontSize: 14,
                   fontWeight: 500,
@@ -527,7 +507,7 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
                 }}>
                   Claude-Opus-4.6
                 </span>
-                <ChevronDown style={{ width: 14, height: 14, color: "rgba(0,0,0,0.5)" }} />
+                <img src="/icons/chevron-down.svg" alt="" style={{ width: 14, height: 14 }} />
               </button>
 
             </div>
