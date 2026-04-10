@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 // ── Design tokens ──────────────────────────────────────────────
 const FONT = "'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
@@ -19,12 +20,18 @@ const C = {
   btnGradient: "linear-gradient(180deg, #FFFFFF 4.3%, #FAFBFC 56.93%)",
 } as const;
 
+// ── Animation constants ───────────────────────────────────────
+const COLLAPSE_DURATION = 0.22;
+const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
+const CONTENT_FADE = 0.18;
+const COLLAPSED_WIDTH = 80;
+const EXPANDED_WIDTH = 320;
+
 // ── Status icon types ──────────────────────────────────────────
 type TaskStatus = "loading" | "pending" | "check";
 
 // ── Icon components (inline SVG with Figma path data) ──────────
 
-/** 旋转弧线 — loading 状态（来自 Figma node 111:21571，teal 色弧） */
 function IconLoading({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -36,7 +43,6 @@ function IconLoading({ size = 16 }: { size?: number }) {
   );
 }
 
-/** 虚线圆圈 — pending 状态（来自 Figma node 111:21575，橙色虚线圆） */
 function IconPending({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -45,7 +51,6 @@ function IconPending({ size = 16 }: { size?: number }) {
   );
 }
 
-/** 对勾 — check/完成状态（来自 Figma node 111:21582） */
 function IconCheck({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -54,12 +59,11 @@ function IconCheck({ size = 16 }: { size?: number }) {
   );
 }
 
-/** AI 新建对话图标（来自 Figma node 111:21505，气泡+十字） */
 function IconAiNewChat({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
       <g clipPath="url(#clip-ai-new-chat)">
-        <path d="M3.54677 13.7533L4.20111 13.6347L3.54677 13.7533ZM2.39883 12.0044L1.90118 12.4455L2.39883 12.0044ZM3.27898 13.0475L2.71062 13.3927V13.3927L3.27898 13.0475ZM4.27661 15.0604L4.6091 15.6363L4.6091 15.6363L4.27661 15.0604ZM3.89246 15.2351L3.88874 14.5701L3.89246 15.2351ZM3.62077 15.0783L4.19853 14.749V14.749L3.62077 15.0783ZM7.42722 14.4436L7.37921 15.1069L7.42722 14.4436ZM5.69885 14.3823L5.58235 13.7276L5.69885 14.3823ZM4.4346 14.9692L4.10212 14.3933L4.10211 14.3933L4.4346 14.9692ZM5.49882 14.4282L5.3181 13.7882L5.49882 14.4282ZM8 1V1.665C11.6841 1.665 14.585 4.4269 14.585 7.73214H15.25H15.915C15.915 3.60126 12.3241 0.335 8 0.335V1ZM15.25 7.73214H14.585C14.585 11.0374 11.6841 13.7993 8 13.7993V14.4643V15.1293C12.3241 15.1293 15.915 11.863 15.915 7.73214H15.25ZM8 14.4643V13.7993C7.82324 13.7993 7.64823 13.7929 7.47522 13.7804L7.42722 14.4436L7.37921 15.1069C7.58418 15.1217 7.79121 15.1293 8 15.1293V14.4643ZM4.4346 14.9692L4.10211 14.3933L3.94412 14.4845L4.27661 15.0604L4.6091 15.6363L4.76709 15.5451L4.4346 14.9692ZM2.39883 12.0044L2.89647 11.5633C1.96637 10.514 1.415 9.1806 1.415 7.73214H0.75H0.085C0.085 9.52891 0.771349 11.1708 1.90118 12.4455L2.39883 12.0044ZM0.75 7.73214H1.415C1.415 4.4269 4.31594 1.665 8 1.665V1V0.335C3.67594 0.335 0.085 3.60126 0.085 7.73214H0.75ZM3.58001 14.6582H4.24501C4.24501 14.2096 4.24782 13.8923 4.20111 13.6347L3.54677 13.7533L2.89244 13.8719C2.9122 13.9809 2.91501 14.1447 2.91501 14.6582H3.58001ZM2.39883 12.0044L1.90118 12.4455C2.1642 12.7422 2.35502 12.9575 2.49261 13.1188C2.63835 13.2896 2.69387 13.3651 2.71062 13.3927L3.27898 13.0475L3.84734 12.7022C3.76738 12.5706 3.64397 12.4192 3.50439 12.2556C3.35665 12.0824 3.15575 11.8558 2.89647 11.5633L2.39883 12.0044ZM3.54677 13.7533L4.20111 13.6347C4.17033 13.4649 4.13807 13.3088 4.07718 13.1483C4.0163 12.9879 3.93689 12.8496 3.84734 12.7022L3.27898 13.0475L2.71062 13.3927C2.79395 13.5299 2.81873 13.5807 2.83367 13.6201C2.84861 13.6595 2.86381 13.714 2.89244 13.8719L3.54677 13.7533ZM4.27661 15.0604L3.94413 14.4845C3.89261 14.5142 3.85306 14.5371 3.81903 14.5561C3.78478 14.5752 3.76439 14.5858 3.75207 14.5917C3.73922 14.5979 3.74603 14.5936 3.76591 14.5876C3.78765 14.581 3.83078 14.5705 3.88874 14.5701L3.89246 15.2351L3.89617 15.9001C4.08803 15.899 4.24242 15.8316 4.32782 15.7906C4.41661 15.748 4.5178 15.689 4.6091 15.6363L4.27661 15.0604ZM3.58001 14.6582H2.91501C2.91501 14.7636 2.91455 14.8807 2.92202 14.979C2.9292 15.0734 2.94801 15.2408 3.04301 15.4075L3.62077 15.0783L4.19853 14.749C4.22723 14.7994 4.23967 14.842 4.24483 14.8641C4.24955 14.8843 4.24927 14.8924 4.24819 14.8781C4.24715 14.8645 4.24614 14.8416 4.24558 14.8023C4.24502 14.7634 4.24501 14.7177 4.24501 14.6582H3.58001ZM3.89246 15.2351L3.88874 14.5701C4.01673 14.5694 4.13516 14.6378 4.19853 14.749L3.62077 15.0783L3.04301 15.4075C3.21754 15.7138 3.54368 15.9021 3.89617 15.9001L3.89246 15.2351ZM7.42722 14.4436L7.47522 13.7804C6.98815 13.7451 6.60832 13.7176 6.31905 13.7049C6.04295 13.6929 5.78981 13.6906 5.58235 13.7276L5.69885 14.3823L5.81535 15.037C5.86245 15.0286 5.98222 15.0215 6.26103 15.0337C6.52667 15.0453 6.88375 15.0711 7.37921 15.1069L7.42722 14.4436ZM4.4346 14.9692L4.76709 15.5451C5.34716 15.2102 5.53105 15.1101 5.67954 15.0682L5.49882 14.4282L5.3181 13.7882C4.96894 13.8868 4.60923 14.1005 4.10212 14.3933L4.4346 14.9692ZM5.69885 14.3823L5.58235 13.7276C5.46955 13.7476 5.42835 13.7571 5.3181 13.7882L5.49882 14.4282L5.67954 15.0682C5.7241 15.0556 5.73713 15.0523 5.74686 15.05C5.75659 15.0478 5.76977 15.0451 5.81535 15.037L5.69885 14.3823ZM5 7.5V8.165H8V7.5V6.835H5V7.5ZM8 7.5V8.165H11V7.5V6.835H8V7.5ZM8 4.5H7.335V7.5H8H8.665V4.5H8ZM8 7.5H7.335V10.5H8H8.665V7.5H8Z" fill="rgba(0,0,0,0.9)"/>
+        <path d="M5 7.5H8M8 7.5H11M8 7.5V4.5M8 7.5V10.5M8 1C12.0041 1 15.25 4.01408 15.25 7.73214C15.25 11.4502 12.0041 14.4643 8 14.4643C7.80723 14.4643 7.61621 14.4573 7.42722 14.4436C6.44468 14.3725 5.9534 14.337 5.69885 14.3823C5.60769 14.3985 5.58792 14.403 5.49882 14.4282C5.25 14.4985 4.9782 14.6554 4.4346 14.9692L4.27661 15.0604C4.07539 15.1766 3.97478 15.2347 3.89246 15.2351C3.78021 15.2358 3.67635 15.1758 3.62077 15.0783C3.58001 15.0067 3.58001 14.8906 3.58001 14.6582C3.58001 14.1771 3.58001 13.9366 3.54677 13.7533C3.48736 13.4256 3.45186 13.3321 3.27898 13.0475C3.18227 12.8883 2.92112 12.5936 2.39883 12.0044C1.36886 10.8424 0.75 9.35476 0.75 7.73214C0.75 4.01408 3.99594 1 8 1Z" stroke="rgba(0,0,0,0.7)" strokeWidth="1.33" fill="none"/>
       </g>
       <defs>
         <clipPath id="clip-ai-new-chat">
@@ -70,7 +74,6 @@ function IconAiNewChat({ size = 16 }: { size?: number }) {
   );
 }
 
-/** 文件夹图标（来自 Figma node 111:21621） */
 function IconFolder({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -79,7 +82,6 @@ function IconFolder({ size = 16 }: { size?: number }) {
   );
 }
 
-/** 下箭头（来自 Figma node 111:21628） */
 function IconChevronDown({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -88,7 +90,6 @@ function IconChevronDown({ size = 14 }: { size?: number }) {
   );
 }
 
-/** 右箭头（来自 Figma node 111:21688） */
 function IconChevronRight({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -97,7 +98,6 @@ function IconChevronRight({ size = 14 }: { size?: number }) {
   );
 }
 
-/** 侧边栏面板图标（来自 Figma node 111:21486，原始 Figma 路径） */
 function IconSidebarPanel({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="-0.335 -1.335 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -137,10 +137,7 @@ function Badge({ count }: { count: number }) {
 // ── Section header ─────────────────────────────────────────────
 function SectionHeader({ label }: { label: string }) {
   return (
-    <div style={{
-      padding: "24px 12px 8px",
-      width: "100%",
-    }}>
+    <div style={{ padding: "24px 12px 8px", width: "100%" }}>
       <span style={{
         fontFamily: FONT, fontSize: 12, fontWeight: 400,
         lineHeight: "20px", color: C.textTertiary,
@@ -164,22 +161,14 @@ function TaskItem({ status, title, badge, indented }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        height: 34,
-        display: "flex",
-        alignItems: "center",
-        paddingLeft: indented ? 36 : 12,
-        paddingRight: 12,
-        borderRadius: 20,
-        cursor: "pointer",
+        height: 34, display: "flex", alignItems: "center",
+        paddingLeft: indented ? 36 : 12, paddingRight: 12,
+        borderRadius: 20, cursor: "pointer",
         backgroundColor: hovered ? C.hoverBg : "transparent",
-        transition: "background 100ms",
-        width: "100%",
+        transition: "background 100ms", width: "100%",
       }}
     >
-      <div style={{
-        display: "flex", alignItems: "center", gap: 8,
-        flex: "1 0 0", minWidth: 0,
-      }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "1 0 0", minWidth: 0 }}>
         <StatusIcon status={status} />
         <span style={{
           fontFamily: FONT, fontSize: 14, fontWeight: 400,
@@ -203,15 +192,10 @@ function MoreLink({ count }: { count: number }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        height: 34,
-        display: "flex",
-        alignItems: "center",
-        paddingLeft: 12, paddingRight: 12,
-        borderRadius: 20,
-        cursor: "pointer",
-        backgroundColor: hovered ? C.hoverBg : "transparent",
-        transition: "background 100ms",
-        width: "100%",
+        height: 34, display: "flex", alignItems: "center",
+        paddingLeft: 12, paddingRight: 12, borderRadius: 20,
+        cursor: "pointer", backgroundColor: hovered ? C.hoverBg : "transparent",
+        transition: "background 100ms", width: "100%",
       }}
     >
       <span style={{
@@ -239,21 +223,13 @@ function FolderItem({ name, expanded, onToggle, children }: {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          height: 34,
-          display: "flex",
-          alignItems: "center",
-          paddingLeft: 12, paddingRight: 12,
-          borderRadius: 20,
-          cursor: "pointer",
-          backgroundColor: hovered ? C.hoverBg : "transparent",
-          transition: "background 100ms",
-          width: "100%",
+          height: 34, display: "flex", alignItems: "center",
+          paddingLeft: 12, paddingRight: 12, borderRadius: 20,
+          cursor: "pointer", backgroundColor: hovered ? C.hoverBg : "transparent",
+          transition: "background 100ms", width: "100%",
         }}
       >
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8,
-          flex: "1 0 0", minWidth: 0,
-        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "1 0 0", minWidth: 0 }}>
           <IconFolder />
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{
@@ -272,86 +248,128 @@ function FolderItem({ name, expanded, onToggle, children }: {
   );
 }
 
+// ── Icon button for collapsed toolbar ──────────────────────────
+function ToolbarButton({ onClick, title, children }: {
+  onClick?: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={title}
+      style={{
+        width: 40, height: 40, borderRadius: 20,
+        border: "none", background: hovered ? C.hoverBg : "transparent",
+        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 0, transition: "background 100ms", flexShrink: 0,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────
 interface SecondaryNavProps {
   onToggle?: () => void;
 }
 
 export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
+  const [collapsed, setCollapsed] = useState(false);
   const [folder1Open, setFolder1Open] = useState(true);
   const [folder2Open, setFolder2Open] = useState(true);
 
-  return (
-    <div style={{
-      width: 320,
-      height: "100vh",
-      backgroundColor: C.bg,
-      borderRight: `1px solid ${C.borderColor}`,
-      display: "flex",
-      flexDirection: "column",
-      flexShrink: 0,
-      fontFamily: FONT,
-      userSelect: "none",
-      overflow: "hidden",
-    }}>
+  const contentFade: React.CSSProperties = {
+    transition: `opacity ${CONTENT_FADE}s ease`,
+    pointerEvents: "auto",
+  };
 
-      {/* ── 标题栏 (84px) ── */}
-      <div style={{
-        height: 84,
-        flexShrink: 0,
+  return (
+    <motion.div
+      animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, minWidth: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
+      transition={{ duration: COLLAPSE_DURATION, ease: COLLAPSE_EASE }}
+      style={{
+        height: "100vh",
+        backgroundColor: C.bg,
+        borderRight: `1px solid ${C.borderColor}`,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        padding: "0 16px",
+        flexShrink: 0,
+        fontFamily: FONT,
+        userSelect: "none",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* ── 标题栏 (84px) ── */}
+      <div style={{
+        height: 84, flexShrink: 0,
+        display: "flex", alignItems: "center",
+        overflow: "hidden", position: "relative",
       }}>
+        {/* 展开态标题栏 */}
         <div style={{
-          height: 44,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          ...contentFade,
+          position: "absolute", inset: 0,
+          opacity: collapsed ? 0 : 1,
+          pointerEvents: collapsed ? "none" : "auto",
+          display: "flex", flexDirection: "column", justifyContent: "center",
+          padding: "0 16px",
         }}>
           <div style={{
-            display: "flex", alignItems: "center", gap: 4,
-            padding: "0 8px",
+            height: 44, display: "flex", alignItems: "center", justifyContent: "space-between",
           }}>
-            <span style={{
-              fontFamily: FONT_SF, fontSize: 18, fontWeight: 600,
-              lineHeight: "26px", color: C.textPrimary,
-              whiteSpace: "nowrap",
-            }}>
-              DataBuddy
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px" }}>
+              <span style={{
+                fontFamily: FONT_SF, fontSize: 18, fontWeight: 600,
+                lineHeight: "26px", color: C.textPrimary, whiteSpace: "nowrap",
+              }}>
+                DataBuddy
+              </span>
+            </div>
+            <ToolbarButton onClick={() => setCollapsed(true)} title="收起面板">
+              <IconSidebarPanel />
+            </ToolbarButton>
           </div>
-          <div
-            onClick={onToggle}
-            style={{
-              width: 32, height: 32,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              borderRadius: 20,
-              cursor: "pointer",
-            }}
-          >
+        </div>
+
+        {/* 收起态工具栏：新建 + 展开 */}
+        <div style={{
+          ...contentFade,
+          position: "absolute", inset: 0,
+          opacity: collapsed ? 1 : 0,
+          pointerEvents: collapsed ? "auto" : "none",
+          display: "flex", alignItems: "center",
+          padding: "0 8px",
+        }}>
+          <ToolbarButton onClick={onToggle} title="新建对话">
+            <IconAiNewChat />
+          </ToolbarButton>
+          <ToolbarButton onClick={() => setCollapsed(false)} title="展开面板">
             <IconSidebarPanel />
-          </div>
+          </ToolbarButton>
         </div>
       </div>
 
-      {/* ── 新建任务按钮 ── */}
-      <div style={{ padding: "0 12px", flexShrink: 0 }}>
+      {/* ── 新建任务按钮（展开态） ── */}
+      <div style={{
+        ...contentFade,
+        opacity: collapsed ? 0 : 1,
+        pointerEvents: collapsed ? "none" : "auto",
+        padding: "0 12px", flexShrink: 0,
+        height: collapsed ? 0 : "auto",
+        overflow: "hidden",
+      }}>
         <button style={{
-          width: "100%",
-          height: 44,
-          borderRadius: 100,
-          border: `1px solid ${C.btnBorder}`,
-          background: C.btnGradient,
-          boxShadow: C.btnShadow,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          cursor: "pointer",
-          padding: "8px 20px",
-          outline: "none",
+          width: "100%", height: 44, borderRadius: 100,
+          border: `1px solid ${C.btnBorder}`, background: C.btnGradient,
+          boxShadow: C.btnShadow, display: "flex", alignItems: "center",
+          justifyContent: "center", gap: 8, cursor: "pointer",
+          padding: "8px 20px", outline: "none",
         }}>
           <IconAiNewChat />
           <span style={{
@@ -364,16 +382,15 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         </button>
       </div>
 
-      {/* ── 可滚动列表区 ── */}
+      {/* ── 可滚动列表区（展开态） ── */}
       <div style={{
+        ...contentFade,
         flex: 1,
-        overflowY: "auto",
-        overflowX: "hidden",
-        padding: "0 12px",
-        scrollbarWidth: "none",
+        opacity: collapsed ? 0 : 1,
+        pointerEvents: collapsed ? "none" : "auto",
+        overflowY: "auto", overflowX: "hidden",
+        padding: "0 12px", scrollbarWidth: "none",
       }}>
-
-        {/* 最近任务 */}
         <SectionHeader label="最近任务" />
         <TaskItem status="loading" title="ETL 开发_订单数据同步流程项目" />
         <TaskItem status="pending" title="统计近 7 天各渠道用户支付金额，按天汇总，输出可直接使用的 SQL 与结果" />
@@ -383,9 +400,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         <TaskItem status="check" title="T+1调度工作流编排" />
         <MoreLink count={7} />
 
-        {/* 文件空间 */}
         <SectionHeader label="文件空间" />
-
         <FolderItem name="junyangliu_dev" expanded={folder1Open} onToggle={() => setFolder1Open(v => !v)}>
           <TaskItem indented status="check" title="基于用户复购、订单、活跃数据，搭建业务监控看板：包含趋势图、明细表、核心指标卡片" badge={2} />
           <TaskItem indented status="pending" title="用户复购率指标开发" />
@@ -399,16 +414,10 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
           <TaskItem indented status="check" title="猫眼_客户留存率指标血缘分析" />
         </FolderItem>
 
-        <FolderItem name="junyangliu001" expanded={false} onToggle={() => {}}>
-        </FolderItem>
-
-        <FolderItem name="junyangliu002" expanded={false} onToggle={() => {}}>
-        </FolderItem>
-
-        <FolderItem name="junyangliu003" expanded={false} onToggle={() => {}}>
-        </FolderItem>
-
+        <FolderItem name="junyangliu001" expanded={false} onToggle={() => {}} />
+        <FolderItem name="junyangliu002" expanded={false} onToggle={() => {}} />
+        <FolderItem name="junyangliu003" expanded={false} onToggle={() => {}} />
       </div>
-    </div>
+    </motion.div>
   );
 }
