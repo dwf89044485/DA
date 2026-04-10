@@ -140,10 +140,11 @@ export const AGENT_CARD_MOTION: MotionTargetDef = {
     { key: "hoverTransitionDuration", label: "浮起时长", min: 0.1, max: 1.0, step: 0.05, group: "动画" },
   ],
   states: [
+    { value: "free", label: "不锁定" },
     { value: "default", label: "默认" },
     { value: "hover", label: "Hover" },
   ],
-  defaultState: "default",
+  defaultState: "free",
   defaultConfig: DEFAULT_FAN_CONFIG as unknown as Record<string, number>,
 };
 
@@ -774,7 +775,7 @@ export const NOVA_DATA: AgentCardProps = {
 // ── 三卡扇形排列组件 ───────────────────────────────────────────
 const FAN_CARD_DATA = [RIGEL_DATA, VEGA_DATA, NOVA_DATA];
 
-export type AgentCardPreviewState = "default" | "hover";
+export type AgentCardPreviewState = "free" | "default" | "hover";
 
 export function AgentFanCards({
   onSkillClick,

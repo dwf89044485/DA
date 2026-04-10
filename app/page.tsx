@@ -111,9 +111,7 @@ export default function Home() {
   // 卡片参数配置
   const [fanConfig, setFanConfig] = useState<FanCardsConfig>(DEFAULT_FAN_CONFIG);
   const [chatInputConfig, setChatInputConfig] = useState<Record<string, number>>(CHAT_INPUT_MOTION.defaultConfig);
-  const [agentCardPreviewState, setAgentCardPreviewState] = useState<AgentCardPreviewState>(
-    (AGENT_CARD_MOTION.defaultState as AgentCardPreviewState | undefined) ?? "default"
-  );
+  const [agentCardPreviewState, setAgentCardPreviewState] = useState<AgentCardPreviewState>("free");
   const [chatInputPreviewState, setChatInputPreviewState] = useState<ChatInputPreviewState>(
     (CHAT_INPUT_MOTION.defaultState as ChatInputPreviewState | undefined) ?? "default"
   );
@@ -177,7 +175,7 @@ export default function Home() {
       // selecting 或 editing → 回到 idle
       setMotionMode("idle");
       setMotionTarget(null);
-      setAgentCardPreviewState((AGENT_CARD_MOTION.defaultState as AgentCardPreviewState | undefined) ?? "default");
+      setAgentCardPreviewState("free");
       setChatInputPreviewState((CHAT_INPUT_MOTION.defaultState as ChatInputPreviewState | undefined) ?? "default");
     }
   }, [motionMode]);
@@ -504,7 +502,7 @@ export default function Home() {
                           >
                             <AgentFanCards
                               config={fanConfig}
-                              previewState={motionMode === "editing" && motionTarget === "agent-cards" ? agentCardPreviewState : undefined}
+                              previewState={motionMode === "editing" && motionTarget === "agent-cards" && agentCardPreviewState !== "free" ? agentCardPreviewState : undefined}
                               onSkillClick={handleSkillClick}
                               onSummon={handleSummon}
                             />
