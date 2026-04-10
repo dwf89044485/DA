@@ -322,8 +322,6 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
             display: "flex",
             flexDirection: "column",
             paddingTop: 16,
-            overflowY: "auto",
-            overflowX: "hidden",
           }}
         >
           {/* 文件预览区 */}
