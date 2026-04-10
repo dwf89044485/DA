@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   IconDataClaw,
@@ -128,12 +128,26 @@ interface SidebarProps {
 const COLLAPSE_DURATION = 0.22;
 const COLLAPSE_EASE: [number, number, number, number] = [0.4, 0, 0.2, 1];
 
+const HOVER_DELAY = 150; // ms debounce to avoid flicker
+
 // ── Sidebar ────────────────────────────────────────────────────
 export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(true);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = useCallback(() => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    setCollapsed(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    hoverTimer.current = setTimeout(() => setCollapsed(true), HOVER_DELAY);
+  }, []);
 
   return (
     <motion.div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       animate={{ width: collapsed ? 72 : 224, minWidth: collapsed ? 72 : 224 }}
       transition={{ duration: COLLAPSE_DURATION, ease: COLLAPSE_EASE }}
       style={{
@@ -235,7 +249,6 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
 
                 {/* 收起按钮 */}
                 <button
-                  onClick={() => setCollapsed(true)}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -286,9 +299,8 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
                 justifyContent: "center",
               }}
             >
-              {/* 点击 logo 可展开 */}
-              <button
-                onClick={() => setCollapsed(false)}
+              {/* 收起状态 logo */}
+              <div
                 style={{
                   width: 40,
                   height: 40,
@@ -297,11 +309,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
                   flexShrink: 0,
                   overflow: "hidden",
                   position: "relative",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
                 }}
-                title="展开菜单"
               >
                 <div style={{
                   position: "absolute",
@@ -324,7 +332,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
                     }}
                   />
                 </div>
-              </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
