@@ -69,7 +69,10 @@ git commit -m "<message>"
 # 若当前在改造分支：git push -u origin <branch-name>
 ```
 
-**回退规则（强制）**
+**提交与回退规则（强制）**
+- 每完成一个可独立验证的 step，立即提交一次（禁止堆积大提交）。
+- 里程碑 step 必须打稳定点 tag（如 `stable-YYYYMMDD-stepN`），便于快速回退。
+- 提交信息需说明本 step 目的（做了什么 + 为什么），保证可读可检索。
 - 已推送到远端的错误提交：优先 `git revert`。
 - 仅本地未推送且用户确认后：可 `git reset --hard <commit>`。
 - 大改造开始前，建议创建稳定锚点（commit/tag）。
@@ -81,8 +84,9 @@ git commit -m "<message>"
 2. 若为大改造且当前在 `main`，先切独立分支再改代码。
 3. 实施最小必要改动，不扩 scope。
 4. 提交前执行 `npx tsc --noEmit` 与 `npm run build`；失败则停止并反馈。
-5. 使用小步提交，便于精准回退。
-6. 回复时给出分支名、commit hash、可用回退方式。
+5. 每个 step 完成即提交；里程碑 step 额外创建稳定 tag。
+6. 提交信息必须写清 step 目标与变更意图。
+7. 回复时给出分支名、commit hash、可用回退方式；若有 tag 一并给出。
 
 ---
 
