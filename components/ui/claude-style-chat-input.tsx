@@ -103,6 +103,7 @@ const popupMenuStyle: React.CSSProperties = {
   gap: 2,
   zIndex: 100,
   minWidth: 180,
+  animation: "ci-menu-in 0.18s cubic-bezier(0.16,1,0.3,1) both",
 };
 
 const menuItemStyle: React.CSSProperties = {
@@ -824,6 +825,11 @@ export const ClaudeChatInput = forwardRef<ChatInputHandle, ChatInputProps>(funct
         .ci-hover-round:hover { background: #F2F4F8 !important; }
         .ci-menu-item { transition: background 0.15s ease; }
         .ci-menu-item:hover { background: #F2F4F8 !important; }
+
+        @keyframes ci-menu-in {
+          from { opacity: 0; transform: translateY(6px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
       `}</style>
 
       {/* 隐藏文件输入 */}
