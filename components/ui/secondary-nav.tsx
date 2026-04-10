@@ -361,7 +361,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
         ...contentFade,
         opacity: collapsed ? 0 : 1,
         pointerEvents: collapsed ? "none" : "auto",
-        padding: "0 12px", flexShrink: 0,
+        padding: "0 12px 8px", flexShrink: 0,
         height: collapsed ? 0 : "auto",
         overflow: "hidden",
       }}>
