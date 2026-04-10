@@ -160,6 +160,7 @@ export default function Sidebar({ activeId = "dataclaw", onMenuClick }: SidebarP
     <motion.div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      initial={false}
       animate={{ width: collapsed ? 72 : 224, minWidth: collapsed ? 72 : 224 }}
       transition={{ duration: COLLAPSE_DURATION, ease: COLLAPSE_EASE }}
       style={{

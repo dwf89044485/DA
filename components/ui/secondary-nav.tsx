@@ -290,6 +290,7 @@ export default function SecondaryNav({ onToggle }: SecondaryNavProps) {
 
   return (
     <motion.div
+      initial={false}
       animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH, minWidth: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       transition={{ duration: COLLAPSE_DURATION, ease: COLLAPSE_EASE }}
       style={{
